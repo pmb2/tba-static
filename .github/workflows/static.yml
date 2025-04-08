@@ -99,18 +99,17 @@ jobs:
               html_file="$OUT_DIR${rel_path}.html"
               if [ ! -f "$html_file" ]; then
                 mkdir -p "$(dirname "$html_file")"
-                # Create redirect HTML with proper indentation for YAML
+                # Create simple HTML file that loads the index.html directly
                 echo "<!DOCTYPE html>" > "$html_file"
                 echo "<html>" >> "$html_file"
                 echo "<head>" >> "$html_file"
                 echo "  <meta charset=\"utf-8\">" >> "$html_file"
-                echo "  <meta http-equiv=\"refresh\" content=\"0;url=${rel_path}/index.html\">" >> "$html_file"
-                echo "  <link rel=\"canonical\" href=\"${rel_path}/index.html\">" >> "$html_file"
-                echo "  <title>Redirecting...</title>" >> "$html_file"
-                echo "  <script>window.location.replace(\"${rel_path}/index.html\");</script>" >> "$html_file"
+                echo "  <title>${rel_path#/}</title>" >> "$html_file"
+                echo "  <script src=\"/path-fixer.js\"></script>" >> "$html_file"
+                echo "  <script>window.location.href = \"${rel_path}/index.html\";</script>" >> "$html_file"
                 echo "</head>" >> "$html_file"
                 echo "<body>" >> "$html_file"
-                echo "  <p>Redirecting to <a href=\"${rel_path}/index.html\">${rel_path}/index.html</a>...</p>" >> "$html_file"
+                echo "  <!-- This page intentionally left blank -->" >> "$html_file"
                 echo "</body>" >> "$html_file"
                 echo "</html>" >> "$html_file"
                 echo "Created redirect: $html_file -> ${rel_path}/index.html"

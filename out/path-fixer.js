@@ -2,10 +2,22 @@
 // Fixes navigation paths for static hosting on GitHub Pages
 
 (function() {
-  console.log("Path Fixer script loaded!");
+  console.log("Path Fixer script v2 loaded!");
 
-  // Create a base URL reference
-  const baseUrl = window.location.origin;
+  // Detect if we're in a redirect or loop
+  const isInRedirectLoop = (function() {
+    // Check if the URL contains multiple occurrences of 'index.html'
+    const path = window.location.pathname;
+    const indexCount = (path.match(/index\.html/g) || []).length;
+    return indexCount > 1;
+  })();
+
+  // If we're in a redirect loop, break out of it
+  if (isInRedirectLoop) {
+    console.warn("Detected redirect loop, redirecting to homepage");
+    window.location.href = "/";
+    return;
+  }
   
   // Function to fix all links on the page
   function fixLinks() {
@@ -58,7 +70,4 @@
   
   // Also run when page is fully loaded to catch dynamically added links
   window.addEventListener('load', fixLinks);
-  
-  // Run again after a short delay to catch any dynamic content
-  setTimeout(fixLinks, 1000);
 })();
