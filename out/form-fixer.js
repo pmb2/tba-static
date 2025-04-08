@@ -1,12 +1,35 @@
-// TBA Form Fixer 
-// This script fixes form submissions to Google Forms by capturing form submissions, 
-// fixing the CORS issue with Google Forms, and providing debugging information.
+// TBA Form Fixer - Static Site Edition
+// This script is specifically designed to work with static sites hosted on GitHub Pages
+// It fixes form submissions to Google Forms by capturing form submissions,
+// resolving CORS issues, and providing user feedback
 
 (function() {
-  console.log("Form Fixer script loaded!");
+  console.log("Form Fixer for Static Sites loaded!");
 
-  // Function to create an iframe to handle the form submission
-  function createSubmissionFrame(formUrl, formData) {
+  // Configuration for Google Forms
+  const GOOGLE_FORMS = {
+    // Main contact form
+    contact: {
+      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSf9FbCGxDu8BegwDLa9qiLu4mFm4MSilBkoTEo5qWVH-EpS-g/formResponse',
+      fields: {
+        'name': 'entry.166753821',
+        'email': 'entry.954130076',
+        'phone': 'entry.1263452350',
+        'subject': 'entry.1134801428',
+        'message': 'entry.1503383050'
+      }
+    },
+    // Newsletter form
+    newsletter: {
+      formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSe5jZ0lDVHf0o5-1T7eJt9vkRk-sYvwNjbcGkBuqP5I09H7ig/formResponse',
+      fields: {
+        'email': 'entry.456327236'
+      }
+    }
+  };
+
+  // Function to create an iframe for submission (avoids CORS issues)
+  function submitViaIframe(formUrl, formData) {
     // Create a hidden iframe to handle the submission
     const iframe = document.createElement('iframe');
     iframe.name = 'hidden_iframe';
@@ -31,115 +54,191 @@
       }
     }
 
-    // Append form to body, submit it, and remove it
+    // Log for debugging
+    console.log(`Submitting to: ${formUrl}`, formData);
+    
+    // Add to DOM, submit, and remove
     document.body.appendChild(form);
-    console.log("Submitting form to: " + formUrl, formData);
     form.submit();
     
-    // Show success message
+    // Show success message and clean up after submission
     setTimeout(() => {
-      document.body.removeChild(form);
-      showSuccessMessage();
+      if (iframe && iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+      if (form && form.parentNode) {
+        document.body.removeChild(form);
+      }
+      displaySuccessMessage();
     }, 1000);
   }
 
-  // Function to show success message
-  function showSuccessMessage() {
+  // Function to display success message
+  function displaySuccessMessage() {
     const messageElement = document.createElement('div');
-    messageElement.style.position = 'fixed';
-    messageElement.style.top = '20px';
-    messageElement.style.left = '50%';
-    messageElement.style.transform = 'translateX(-50%)';
-    messageElement.style.backgroundColor = '#4CAF50';
-    messageElement.style.color = 'white';
-    messageElement.style.padding = '15px 30px';
-    messageElement.style.borderRadius = '5px';
-    messageElement.style.zIndex = '1000';
-    messageElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-    messageElement.textContent = 'Form submitted successfully!';
     
+    // Style the message
+    Object.assign(messageElement.style, {
+      position: 'fixed',
+      top: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: '#4CAF50',
+      color: 'white',
+      padding: '15px 30px',
+      borderRadius: '5px',
+      zIndex: '9999',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '16px',
+      fontWeight: '500'
+    });
+    
+    messageElement.textContent = 'Form submitted successfully!';
     document.body.appendChild(messageElement);
     
+    // Remove the message after a delay
     setTimeout(() => {
-      document.body.removeChild(messageElement);
+      if (messageElement && messageElement.parentNode) {
+        document.body.removeChild(messageElement);
+      }
     }, 5000);
   }
 
-  // Handle form submissions
-  function interceptFormSubmit() {
-    // Get all forms in the document
-    const forms = document.querySelectorAll('form');
+  // Function to handle form submission errors
+  function handleSubmissionError(error, formType) {
+    console.error(`Error submitting ${formType} form:`, error);
     
-    forms.forEach(form => {
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    const errorElement = document.createElement('div');
+    
+    // Style the error message
+    Object.assign(errorElement.style, {
+      position: 'fixed',
+      top: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      backgroundColor: '#f44336',
+      color: 'white',
+      padding: '15px 30px',
+      borderRadius: '5px',
+      zIndex: '9999',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      fontSize: '16px',
+      fontWeight: '500'
+    });
+    
+    errorElement.textContent = 'There was an error submitting the form. Please try again.';
+    document.body.appendChild(errorElement);
+    
+    // Remove the error message after a delay
+    setTimeout(() => {
+      if (errorElement && errorElement.parentNode) {
+        document.body.removeChild(errorElement);
+      }
+    }, 5000);
+  }
+
+  // Function to determine form type
+  function identifyFormType(form, formValues) {
+    // Check if it's a contact form (has name, email, message fields or is in a container with bg-zinc-900 class)
+    if (form.closest('.bg-zinc-900') || 
+        (formValues.name && formValues.email && formValues.message) ||
+        (form.id && form.id.includes('contact'))) {
+      return 'contact';
+    }
+    
+    // Check if it's a newsletter form (just has an email field)
+    if (Object.keys(formValues).length === 1 && formValues.email) {
+      return 'newsletter';
+    }
+    
+    // Default to contact form if can't determine
+    console.log("Form type couldn't be determined, using contact form as default");
+    return 'contact';
+  }
+
+  // Function to prepare form data for submission
+  function prepareFormData(form) {
+    const formValues = {};
+    const formData = {};
+    
+    // Extract values from form elements
+    Array.from(form.elements).forEach(element => {
+      if (element.name && element.value && element.type !== 'submit') {
+        formValues[element.name] = element.value;
+      }
+    });
+    
+    // Identify form type
+    const formType = identifyFormType(form, formValues);
+    const formConfig = GOOGLE_FORMS[formType];
+    
+    if (!formConfig) {
+      console.error('Form configuration not found for type:', formType);
+      return null;
+    }
+    
+    // Map values to Google Form fields
+    for (const [fieldName, value] of Object.entries(formValues)) {
+      const googleFieldId = formConfig.fields[fieldName];
+      if (googleFieldId) {
+        formData[googleFieldId] = value;
+      }
+    }
+    
+    return {
+      formUrl: formConfig.formUrl,
+      formData,
+      formType
+    };
+  }
+
+  // Function to intercept and handle all form submissions
+  function handleFormSubmissions() {
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
         
-        // Get form values
-        const formData = {};
-        const formElements = form.elements;
-        
-        for (let i = 0; i < formElements.length; i++) {
-          const element = formElements[i];
-          if (element.name && element.value && element.type !== 'submit') {
-            // Map the fields
-            switch(element.name) {
-              case 'name':
-                formData['entry.166753821'] = element.value;
-                break;
-              case 'email':
-                formData['entry.954130076'] = element.value;
-                break;  
-              case 'phone':
-                formData['entry.1263452350'] = element.value;
-                break;
-              case 'subject':
-                formData['entry.1134801428'] = element.value;
-                break;
-              case 'message':
-                formData['entry.1503383050'] = element.value;
-                break;
-              default:
-                // If it's a newsletter form just for email
-                if (element.type === 'email') {
-                  formData['entry.456327236'] = element.value;
-                }
-                break;
-            }
+        try {
+          const formInfo = prepareFormData(form);
+          
+          if (!formInfo) {
+            throw new Error('Could not prepare form data');
           }
+          
+          // Submit form data
+          submitViaIframe(formInfo.formUrl, formInfo.formData);
+          
+          // Reset form
+          form.reset();
+          
+          console.log(`${formInfo.formType} form submitted successfully`);
+        } catch (error) {
+          handleSubmissionError(error, 'form');
         }
-        
-        // Determine which form is being submitted
-        let googleFormUrl;
-        
-        // Check if it's the contact form (in contact page)
-        if (form.closest('.bg-zinc-900')) {
-          googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSf9FbCGxDu8BegwDLa9qiLu4mFm4MSilBkoTEo5qWVH-EpS-g/formResponse';
-          console.log("Contact form intercepted!");
-        } 
-        // If this is a newsletter form (just has an email field)
-        else if (Object.keys(formData).length === 1 && formData['entry.456327236']) {
-          googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSe5jZ0lDVHf0o5-1T7eJt9vkRk-sYvwNjbcGkBuqP5I09H7ig/formResponse';
-          console.log("Newsletter form intercepted!");
-        }
-        // Default to contact form if can't determine
-        else {
-          googleFormUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSf9FbCGxDu8BegwDLa9qiLu4mFm4MSilBkoTEo5qWVH-EpS-g/formResponse';
-          console.log("Unidentified form intercepted, using default form URL");
-        }
-        
-        // Submit the form through iframe
-        createSubmissionFrame(googleFormUrl, formData);
-        
-        // Clear the form
-        form.reset();
       });
     });
   }
 
-  // Call the function when the DOM is loaded
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', interceptFormSubmit);
-  } else {
-    interceptFormSubmit();
+  // Initialize when the DOM is ready
+  function initialize() {
+    console.log("Initializing form handler for static site...");
+    handleFormSubmissions();
   }
+
+  // Trigger immediately if DOM is already loaded or wait for DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+  } else {
+    initialize();
+  }
+  
+  // Backup: also attach to window load event to ensure it works even when used as a late-loaded script
+  window.addEventListener('load', function() {
+    if (!document.querySelector('form')) {
+      console.log("No forms found on initial load. Checking again...");
+      setTimeout(handleFormSubmissions, 1000); // Try again after a delay
+    }
+  });
 })();
