@@ -33,10 +33,15 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Copy 404.html to root
+        run: |
+          cp ./out/404.html ./out/.nojekyll
+          echo "backus.agency" > ./out/CNAME
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload only the out directory
+          # Upload the out directory
           path: './out'
       - name: Deploy to GitHub Pages
         id: deployment
