@@ -4,7 +4,7 @@
 // resolving CORS issues, and providing user feedback
 
 (function() {
-  console.log("Form Fixer for Static Sites loaded!");
+  console.log("Form Fixer for Static Sites loaded - v2!");
 
   // Configuration for Google Forms
   const GOOGLE_FORMS = {
@@ -30,47 +30,147 @@
 
   // Function to create an iframe for submission (avoids CORS issues)
   function submitViaIframe(formUrl, formData) {
-    // Create a hidden iframe to handle the submission
-    const iframe = document.createElement('iframe');
-    iframe.name = 'hidden_iframe';
-    iframe.id = 'hidden_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+    try {
+      // Create a hidden iframe to handle the submission
+      const iframe = document.createElement('iframe');
+      iframe.name = 'hidden_iframe_' + Math.floor(Math.random() * 1000);
+      iframe.id = iframe.name;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
 
-    // Create a form element and submit it in the iframe
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = formUrl;
-    form.target = 'hidden_iframe';
+      // Create a form element and submit it in the iframe
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = formUrl;
+      form.target = iframe.name;
+      form.style.display = 'none';
 
-    // Add form data
-    for (const key in formData) {
-      if (formData.hasOwnProperty(key)) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = formData[key];
-        form.appendChild(input);
+      // Add form data
+      for (const key in formData) {
+        if (formData.hasOwnProperty(key) && formData[key]) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = formData[key];
+          form.appendChild(input);
+        }
       }
+
+      // Log for debugging
+      console.log(`Submitting to: ${formUrl}`, formData);
+      
+      // Add to DOM, submit, and remove
+      document.body.appendChild(form);
+      
+      // Add a success listener to the iframe
+      iframe.addEventListener('load', function() {
+        console.log('Form submission completed');
+        displaySuccessMessage();
+        
+        // Clean up after submission with a delay
+        setTimeout(() => {
+          if (iframe && iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+          if (form && form.parentNode) {
+            document.body.removeChild(form);
+          }
+        }, 1000);
+      });
+      
+      form.submit();
+    } catch (error) {
+      console.error('Error during form submission:', error);
+      handleSubmissionError(error, 'form');
     }
+  }
 
-    // Log for debugging
-    console.log(`Submitting to: ${formUrl}`, formData);
-    
-    // Add to DOM, submit, and remove
-    document.body.appendChild(form);
-    form.submit();
-    
-    // Show success message and clean up after submission
-    setTimeout(() => {
-      if (iframe && iframe.parentNode) {
-        document.body.removeChild(iframe);
+  // Direct form submission as backup method
+  function submitDirectly(formUrl, formData) {
+    try {
+      const params = new URLSearchParams();
+      
+      for (const key in formData) {
+        if (formData.hasOwnProperty(key) && formData[key]) {
+          params.append(key, formData[key]);
+        }
       }
-      if (form && form.parentNode) {
-        document.body.removeChild(form);
+      
+      console.log('Using direct submission method');
+      
+      fetch(formUrl, {
+        method: 'POST',
+        mode: 'no-cors', // This is important for cross-origin requests
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString()
+      })
+      .then(() => {
+        console.log('Form submitted successfully via fetch');
+        displaySuccessMessage();
+      })
+      .catch(error => {
+        console.error('Error in direct submission:', error);
+        // Fall back to window.open method
+        submitViaRedirect(formUrl, formData);
+      });
+    } catch (error) {
+      console.error('Error setting up direct submission:', error);
+      // Fall back to window.open method
+      submitViaRedirect(formUrl, formData);
+    }
+  }
+
+  // Last resort method - redirect in new tab
+  function submitViaRedirect(formUrl, formData) {
+    try {
+      // Build query string
+      const queryParams = [];
+      for (const key in formData) {
+        if (formData.hasOwnProperty(key) && formData[key]) {
+          queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`);
+        }
       }
-      displaySuccessMessage();
-    }, 1000);
+      
+      const fullUrl = `${formUrl}?${queryParams.join('&')}`;
+      console.log('Using redirect submission method:', fullUrl);
+      
+      // Open in a new tab but keep focus on current page
+      const newTab = window.open('', '_blank');
+      if (newTab) {
+        newTab.location.href = fullUrl;
+        setTimeout(() => {
+          displaySuccessMessage();
+        }, 500);
+      } else {
+        console.warn('Pop-up blocked. Trying direct location change');
+        // Create a temporary form and submit it in a new window
+        const tempForm = document.createElement('form');
+        tempForm.method = 'GET';
+        tempForm.action = formUrl;
+        tempForm.target = '_blank';
+        
+        for (const key in formData) {
+          if (formData.hasOwnProperty(key) && formData[key]) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = formData[key];
+            tempForm.appendChild(input);
+          }
+        }
+        
+        document.body.appendChild(tempForm);
+        tempForm.submit();
+        document.body.removeChild(tempForm);
+        displaySuccessMessage();
+      }
+    } catch (error) {
+      console.error('All submission methods failed:', error);
+      handleSubmissionError(error, 'all methods');
+    }
   }
 
   // Function to display success message
@@ -184,6 +284,9 @@
       const googleFieldId = formConfig.fields[fieldName];
       if (googleFieldId) {
         formData[googleFieldId] = value;
+      } else if (fieldName === 'email' && formType === 'newsletter') {
+        // Special case for newsletter forms
+        formData['entry.456327236'] = value;
       }
     }
     
@@ -197,6 +300,12 @@
   // Function to intercept and handle all form submissions
   function handleFormSubmissions() {
     document.querySelectorAll('form').forEach(form => {
+      // Skip if already processed
+      if (form.dataset.processed) return;
+      
+      form.dataset.processed = 'true';
+      console.log('Attaching handler to form:', form);
+      
       form.addEventListener('submit', function(event) {
         event.preventDefault();
         
@@ -207,14 +316,16 @@
             throw new Error('Could not prepare form data');
           }
           
-          // Submit form data
+          console.log(`${formInfo.formType} form intercepted:`, formInfo);
+          
+          // Try iframe submission first
           submitViaIframe(formInfo.formUrl, formInfo.formData);
           
           // Reset form
           form.reset();
           
-          console.log(`${formInfo.formType} form submitted successfully`);
         } catch (error) {
+          console.error('Form submission error:', error);
           handleSubmissionError(error, 'form');
         }
       });
@@ -225,6 +336,31 @@
   function initialize() {
     console.log("Initializing form handler for static site...");
     handleFormSubmissions();
+    
+    // Watch for dynamically added forms
+    const observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+          // Check if any new forms were added
+          let formsAdded = false;
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeName === 'FORM') {
+              formsAdded = true;
+            } else if (node.querySelectorAll) {
+              const forms = node.querySelectorAll('form:not([data-processed])');
+              if (forms.length > 0) formsAdded = true;
+            }
+          });
+          
+          if (formsAdded) {
+            console.log('New forms detected, updating handlers');
+            handleFormSubmissions();
+          }
+        }
+      });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   // Trigger immediately if DOM is already loaded or wait for DOMContentLoaded
@@ -236,9 +372,6 @@
   
   // Backup: also attach to window load event to ensure it works even when used as a late-loaded script
   window.addEventListener('load', function() {
-    if (!document.querySelector('form')) {
-      console.log("No forms found on initial load. Checking again...");
-      setTimeout(handleFormSubmissions, 1000); // Try again after a delay
-    }
+    setTimeout(handleFormSubmissions, 500); // Try again after a delay
   });
 })();
