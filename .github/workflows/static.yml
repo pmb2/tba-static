@@ -33,10 +33,93 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Copy 404.html to root
+      
+      - name: Prepare static site for GitHub Pages
         run: |
-          cp ./out/404.html ./out/.nojekyll
-          echo "backus.agency" > ./out/CNAME
+          # Create a script to fix the static site for GitHub Pages
+          cat > ./fix-static-site.sh << 'EOF'
+          #!/bin/bash
+          
+          # Prepare the static site for GitHub Pages deployment
+          OUT_DIR="./out"
+          
+          # Ensure .nojekyll file exists (prevents GitHub Pages from using Jekyll)
+          echo "Creating .nojekyll file"
+          touch "$OUT_DIR/.nojekyll"
+          
+          # Create CNAME file
+          echo "Creating CNAME file"
+          echo "backus.agency" > "$OUT_DIR/CNAME"
+          
+          # Create 404 page if it doesn't exist
+          if [ ! -f "$OUT_DIR/404.html" ]; then
+            echo "Creating 404 page"
+            cp "$OUT_DIR/index.html" "$OUT_DIR/404.html"
+          fi
+          
+          # Copy the path-fixer.js and form-fixer.js to the output directory
+          echo "Ensuring path-fixer.js and form-fixer.js exist"
+          
+          # Add script tags to all HTML files
+          echo "Adding scripts to HTML files"
+          for html_file in $(find "$OUT_DIR" -name "*.html" | grep -v -E "\.git\/|_next\/"); do
+            # Insert the path-fixer.js script if not already included
+            if ! grep -q "path-fixer.js" "$html_file"; then
+              sed -i 's#</body>#<script src="/path-fixer.js"></script></body>#' "$html_file"
+              echo "Added path-fixer.js to $html_file"
+            fi
+            
+            # Insert the form-fixer.js script if not already included and not in the head
+            if ! grep -q "form-fixer.js" "$html_file"; then
+              # Only add to files with forms
+              if grep -q "<form" "$html_file"; then
+                sed -i 's#</head>#<script src="/form-fixer.js"></script></head>#' "$html_file"
+                echo "Added form-fixer.js to $html_file"
+              fi
+            fi
+          done
+          
+          # Create HTML redirects for directory paths
+          echo "Creating directory redirects"
+          for dir in $(find "$OUT_DIR" -type d | grep -v -E "\.git\/|_next\/"); do
+            # Skip the out directory itself
+            if [ "$dir" == "$OUT_DIR" ]; then
+              continue
+            fi
+            
+            # Create an HTML file for paths without trailing slashes
+            # For example, create /about.html that redirects to /about/index.html
+            rel_path=${dir#$OUT_DIR}
+            if [ "$rel_path" != "" ]; then
+              html_file="$OUT_DIR${rel_path}.html"
+              if [ ! -f "$html_file" ]; then
+                mkdir -p "$(dirname "$html_file")"
+                cat > "$html_file" << HTMLEOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0;url=${rel_path}/index.html">
+            <link rel="canonical" href="${rel_path}/index.html">
+            <title>Redirecting...</title>
+            <script>window.location.replace("${rel_path}/index.html");</script>
+          </head>
+          <body>
+            <p>Redirecting to <a href="${rel_path}/index.html">${rel_path}/index.html</a>...</p>
+          </body>
+          </html>
+          HTMLEOF
+                echo "Created redirect: $html_file -> ${rel_path}/index.html"
+              fi
+            fi
+          done
+          
+          echo "Static site preparation complete"
+          EOF
+          
+          # Make the script executable and run it
+          chmod +x ./fix-static-site.sh
+          ./fix-static-site.sh
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
