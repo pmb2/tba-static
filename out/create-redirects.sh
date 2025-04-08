@@ -14,6 +14,14 @@ else
   OUT_DIR="$BASE_DIR/out"
 fi
 
+# Create root .nojekyll file (at repository root) to ensure GitHub Pages doesn't use Jekyll
+touch "$BASE_DIR/.nojekyll"
+echo "Created root .nojekyll file"
+
+# Create root CNAME file to ensure proper domain configuration
+echo "backus.agency" > "$BASE_DIR/CNAME"
+echo "Created root CNAME file"
+
 # Function to create redirect from /path/ to /path/index.html
 create_redirect() {
   local path=$1

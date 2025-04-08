@@ -41,14 +41,19 @@ jobs:
           #!/bin/bash
           
           # Prepare the static site for GitHub Pages deployment
+          ROOT_DIR="."
           OUT_DIR="./out"
           
-          # Ensure .nojekyll file exists (prevents GitHub Pages from using Jekyll)
-          echo "Creating .nojekyll file"
+          # First, create root-level files for GitHub Pages
+          echo "Creating root-level files"
+          touch "$ROOT_DIR/.nojekyll"
+          echo "backus.agency" > "$ROOT_DIR/CNAME"
+          
+          # Then create files inside the out directory
+          echo "Creating .nojekyll file in output directory"
           touch "$OUT_DIR/.nojekyll"
           
-          # Create CNAME file
-          echo "Creating CNAME file"
+          echo "Creating CNAME file in output directory"
           echo "backus.agency" > "$OUT_DIR/CNAME"
           
           # Create 404 page if it doesn't exist
@@ -57,19 +62,19 @@ jobs:
             cp "$OUT_DIR/index.html" "$OUT_DIR/404.html"
           fi
           
-          # Copy the path-fixer.js and form-fixer.js to the output directory
-          echo "Ensuring path-fixer.js and form-fixer.js exist"
-          
-          # Add script tags to all HTML files
-          echo "Adding scripts to HTML files"
+          # Fix paths in HTML files
+          echo "Fixing paths in HTML files"
           for html_file in $(find "$OUT_DIR" -name "*.html" | grep -v -E "\.git\/|_next\/"); do
+            # Replace /out/ references if there are any
+            sed -i 's#/out/#/#g' "$html_file"
+            
             # Insert the path-fixer.js script if not already included
             if ! grep -q "path-fixer.js" "$html_file"; then
               sed -i 's#</body>#<script src="/path-fixer.js"></script></body>#' "$html_file"
               echo "Added path-fixer.js to $html_file"
             fi
             
-            # Insert the form-fixer.js script if not already included and not in the head
+            # Insert the form-fixer.js script if not already included
             if ! grep -q "form-fixer.js" "$html_file"; then
               # Only add to files with forms
               if grep -q "<form" "$html_file"; then
@@ -95,20 +100,20 @@ jobs:
               if [ ! -f "$html_file" ]; then
                 mkdir -p "$(dirname "$html_file")"
                 cat > "$html_file" << HTMLEOF
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta http-equiv="refresh" content="0;url=${rel_path}/index.html">
-            <link rel="canonical" href="${rel_path}/index.html">
-            <title>Redirecting...</title>
-            <script>window.location.replace("${rel_path}/index.html");</script>
-          </head>
-          <body>
-            <p>Redirecting to <a href="${rel_path}/index.html">${rel_path}/index.html</a>...</p>
-          </body>
-          </html>
-          HTMLEOF
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0;url=${rel_path}/index.html">
+  <link rel="canonical" href="${rel_path}/index.html">
+  <title>Redirecting...</title>
+  <script>window.location.replace("${rel_path}/index.html");</script>
+</head>
+<body>
+  <p>Redirecting to <a href="${rel_path}/index.html">${rel_path}/index.html</a>...</p>
+</body>
+</html>
+HTMLEOF
                 echo "Created redirect: $html_file -> ${rel_path}/index.html"
               fi
             fi
