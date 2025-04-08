@@ -99,7 +99,7 @@ jobs:
               html_file="$OUT_DIR${rel_path}.html"
               if [ ! -f "$html_file" ]; then
                 mkdir -p "$(dirname "$html_file")"
-                cat > "$html_file" << HTMLEOF
+                cat > "$html_file" << 'HTMLEOF'
 <!DOCTYPE html>
 <html>
 <head>
@@ -114,6 +114,8 @@ jobs:
 </body>
 </html>
 HTMLEOF
+                # Replace placeholders with actual values
+                sed -i "s|\${rel_path}|${rel_path}|g" "$html_file"
                 echo "Created redirect: $html_file -> ${rel_path}/index.html"
               fi
             fi
