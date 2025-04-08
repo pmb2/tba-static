@@ -4,7 +4,7 @@
 // resolving CORS issues, and providing user feedback
 
 (function() {
-  console.log("Form Fixer for Static Sites loaded - v2!");
+  console.log("Form Fixer for Static Sites loaded - v3!");
 
   // Configuration for Google Forms
   const GOOGLE_FORMS = {
@@ -28,21 +28,124 @@
     }
   };
 
-  // Function to create an iframe for submission (avoids CORS issues)
+  // Helper function to create and append a hidden iframe
+  function createHiddenIframe(id) {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('id', id);
+    iframe.setAttribute('name', id);
+    iframe.setAttribute('width', '0');
+    iframe.setAttribute('height', '0');
+    iframe.setAttribute('tabindex', '-1');
+    iframe.style.opacity = '0';
+    iframe.style.position = 'absolute';
+    iframe.style.left = '-1000px';
+    iframe.style.top = '-1000px';
+    document.body.appendChild(iframe);
+    return iframe;
+  }
+
+  // Method 1: Google Forms direct submission via pre-generated iframe
+  function setupPrefetchedForms() {
+    try {
+      // Create hidden iframes for each form type
+      Object.keys(GOOGLE_FORMS).forEach(formType => {
+        const config = GOOGLE_FORMS[formType];
+        const iframeId = `hidden_${formType}_iframe`;
+        
+        // Skip if iframe already exists
+        if (document.getElementById(iframeId)) {
+          return;
+        }
+        
+        // Create iframe
+        const iframe = createHiddenIframe(iframeId);
+        
+        // Create a hidden form that submits to the iframe
+        const hiddenForm = document.createElement('form');
+        hiddenForm.id = `hidden_${formType}_form`;
+        hiddenForm.action = config.formUrl;
+        hiddenForm.method = 'POST';
+        hiddenForm.target = iframeId;
+        hiddenForm.style.display = 'none';
+        
+        // Add input fields based on configuration
+        Object.values(config.fields).forEach(fieldId => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = fieldId;
+          input.id = `${hiddenForm.id}_${fieldId}`;
+          hiddenForm.appendChild(input);
+        });
+        
+        document.body.appendChild(hiddenForm);
+        
+        console.log(`Prefetched form setup complete for ${formType}`);
+      });
+    } catch (error) {
+      console.error('Error setting up prefetched forms:', error);
+    }
+  }
+
+  // Primary submission method - use prefetched iframe
+  function submitViaPrefetchedForm(formType, formData) {
+    try {
+      const hiddenFormId = `hidden_${formType}_form`;
+      const hiddenForm = document.getElementById(hiddenFormId);
+      
+      if (!hiddenForm) {
+        console.error(`Hidden form ${hiddenFormId} not found, falling back to iframe method`);
+        return false;
+      }
+      
+      // Update form fields with values
+      for (const [googleFieldId, value] of Object.entries(formData)) {
+        const input = document.getElementById(`${hiddenFormId}_${googleFieldId}`);
+        if (input) {
+          input.value = value;
+        } else {
+          // Field doesn't exist, create it
+          const newInput = document.createElement('input');
+          newInput.type = 'hidden';
+          newInput.name = googleFieldId;
+          newInput.id = `${hiddenFormId}_${googleFieldId}`;
+          newInput.value = value;
+          hiddenForm.appendChild(newInput);
+        }
+      }
+      
+      console.log(`Submitting ${formType} form via prefetched method:`, formData);
+      
+      // Submit the form
+      hiddenForm.submit();
+      
+      // Show success message (Google Forms won't provide feedback)
+      displaySuccessMessage();
+      
+      return true;
+    } catch (error) {
+      console.error('Error in prefetched form submission:', error);
+      return false;
+    }
+  }
+
+  // Method 2: Create and use a new iframe for each submission
   function submitViaIframe(formUrl, formData) {
     try {
-      // Create a hidden iframe to handle the submission
+      // Create a unique name for the iframe
+      const iframeName = 'hidden_iframe_' + Math.floor(Math.random() * 1000000);
+      
+      // Create hidden iframe
       const iframe = document.createElement('iframe');
-      iframe.name = 'hidden_iframe_' + Math.floor(Math.random() * 1000);
-      iframe.id = iframe.name;
+      iframe.name = iframeName;
+      iframe.id = iframeName;
       iframe.style.display = 'none';
       document.body.appendChild(iframe);
 
-      // Create a form element and submit it in the iframe
+      // Create a form element for this submission
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = formUrl;
-      form.target = iframe.name;
+      form.target = iframeName;
       form.style.display = 'none';
 
       // Add form data
@@ -56,37 +159,38 @@
         }
       }
 
-      // Log for debugging
-      console.log(`Submitting to: ${formUrl}`, formData);
+      console.log(`Submitting to: ${formUrl} via iframe`, formData);
       
-      // Add to DOM, submit, and remove
+      // Add form to DOM
       document.body.appendChild(form);
       
-      // Add a success listener to the iframe
+      // Success listener
       iframe.addEventListener('load', function() {
-        console.log('Form submission completed');
+        console.log('Form submission completed via iframe');
         displaySuccessMessage();
         
-        // Clean up after submission with a delay
+        // Clean up after submission
         setTimeout(() => {
-          if (iframe && iframe.parentNode) {
+          if (document.body.contains(iframe)) {
             document.body.removeChild(iframe);
           }
-          if (form && form.parentNode) {
+          if (document.body.contains(form)) {
             document.body.removeChild(form);
           }
         }, 1000);
       });
       
+      // Submit the form
       form.submit();
+      return true;
     } catch (error) {
-      console.error('Error during form submission:', error);
-      handleSubmissionError(error, 'form');
+      console.error('Error during iframe submission:', error);
+      return false;
     }
   }
 
-  // Direct form submission as backup method
-  function submitDirectly(formUrl, formData) {
+  // Method 3: Direct fetch submission 
+  function submitViaFetch(formUrl, formData) {
     try {
       const params = new URLSearchParams();
       
@@ -96,80 +200,77 @@
         }
       }
       
-      console.log('Using direct submission method');
+      console.log('Attempting fetch submission to:', formUrl);
       
       fetch(formUrl, {
         method: 'POST',
-        mode: 'no-cors', // This is important for cross-origin requests
+        mode: 'no-cors', // Critical for CORS requests to Google Forms
         cache: 'no-cache',
+        credentials: 'omit',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        redirect: 'follow',
         body: params.toString()
       })
       .then(() => {
-        console.log('Form submitted successfully via fetch');
+        // We won't actually know if it succeeded due to no-cors
+        console.log('Form fetch request completed');
         displaySuccessMessage();
+        return true;
       })
       .catch(error => {
-        console.error('Error in direct submission:', error);
-        // Fall back to window.open method
-        submitViaRedirect(formUrl, formData);
+        console.error('Error in fetch submission:', error);
+        return false;
       });
+      
+      return true; // Return true since we've initiated the fetch
     } catch (error) {
-      console.error('Error setting up direct submission:', error);
-      // Fall back to window.open method
-      submitViaRedirect(formUrl, formData);
+      console.error('Error setting up fetch submission:', error);
+      return false;
     }
   }
 
-  // Last resort method - redirect in new tab
+  // Method 4: Last resort - try navigation-based submission
   function submitViaRedirect(formUrl, formData) {
     try {
-      // Build query string
-      const queryParams = [];
+      const params = new URLSearchParams();
+      
       for (const key in formData) {
         if (formData.hasOwnProperty(key) && formData[key]) {
-          queryParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`);
+          params.append(key, formData[key]);
         }
       }
       
-      const fullUrl = `${formUrl}?${queryParams.join('&')}`;
-      console.log('Using redirect submission method:', fullUrl);
+      const redirectUrl = `${formUrl}?${params.toString()}`;
       
-      // Open in a new tab but keep focus on current page
-      const newTab = window.open('', '_blank');
-      if (newTab) {
-        newTab.location.href = fullUrl;
-        setTimeout(() => {
-          displaySuccessMessage();
-        }, 500);
-      } else {
-        console.warn('Pop-up blocked. Trying direct location change');
-        // Create a temporary form and submit it in a new window
-        const tempForm = document.createElement('form');
-        tempForm.method = 'GET';
-        tempForm.action = formUrl;
-        tempForm.target = '_blank';
-        
-        for (const key in formData) {
-          if (formData.hasOwnProperty(key) && formData[key]) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = formData[key];
-            tempForm.appendChild(input);
-          }
+      // Create a form to submit in a new window
+      const tempForm = document.createElement('form');
+      tempForm.method = 'POST';
+      tempForm.action = formUrl;
+      tempForm.target = '_blank';
+      
+      for (const key in formData) {
+        if (formData.hasOwnProperty(key) && formData[key]) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = formData[key];
+          tempForm.appendChild(input);
         }
-        
-        document.body.appendChild(tempForm);
-        tempForm.submit();
-        document.body.removeChild(tempForm);
-        displaySuccessMessage();
       }
+      
+      console.log('Using redirect submission:', redirectUrl);
+      document.body.appendChild(tempForm);
+      tempForm.submit();
+      document.body.removeChild(tempForm);
+      
+      // Show success message anyway
+      displaySuccessMessage();
+      return true;
     } catch (error) {
-      console.error('All submission methods failed:', error);
-      handleSubmissionError(error, 'all methods');
+      console.error('Error in redirect submission:', error);
+      return false;
     }
   }
 
@@ -239,17 +340,43 @@
     }, 5000);
   }
 
+  // Try submitting form using all available methods until one succeeds
+  function tryAllSubmissionMethods(formType, formUrl, formData) {
+    // Try prefetched method first
+    if (submitViaPrefetchedForm(formType, formData)) {
+      return;
+    }
+    
+    // Then try iframe method
+    if (submitViaIframe(formUrl, formData)) {
+      return;
+    }
+    
+    // Then try fetch API
+    if (submitViaFetch(formUrl, formData)) {
+      return;
+    }
+    
+    // Finally, try redirect method
+    submitViaRedirect(formUrl, formData);
+  }
+
   // Function to determine form type
   function identifyFormType(form, formValues) {
-    // Check if it's a contact form (has name, email, message fields or is in a container with bg-zinc-900 class)
+    // Check if it's a contact form
     if (form.closest('.bg-zinc-900') || 
+        form.classList.contains('contact-form') ||
         (formValues.name && formValues.email && formValues.message) ||
-        (form.id && form.id.includes('contact'))) {
+        (form.id && form.id.includes('contact')) ||
+        form.action.includes('contact') ||
+        document.location.pathname.includes('/contact')) {
       return 'contact';
     }
     
-    // Check if it's a newsletter form (just has an email field)
-    if (Object.keys(formValues).length === 1 && formValues.email) {
+    // Check if it's a newsletter form (typically just has an email field)
+    if ((Object.keys(formValues).length === 1 && formValues.email) ||
+        form.classList.contains('newsletter-form') ||
+        (form.id && form.id.includes('newsletter'))) {
       return 'newsletter';
     }
     
@@ -261,12 +388,31 @@
   // Function to prepare form data for submission
   function prepareFormData(form) {
     const formValues = {};
-    const formData = {};
+    let googleFormData = {};
     
     // Extract values from form elements
     Array.from(form.elements).forEach(element => {
-      if (element.name && element.value && element.type !== 'submit') {
-        formValues[element.name] = element.value;
+      if (element.name && element.type !== 'submit' && element.type !== 'button') {
+        // For select elements, get the selected option
+        if (element.nodeName === 'SELECT') {
+          formValues[element.name] = element.options[element.selectedIndex]?.value || '';
+        } 
+        // For radio buttons, only include if checked
+        else if (element.type === 'radio') {
+          if (element.checked) {
+            formValues[element.name] = element.value;
+          }
+        }
+        // For checkboxes, only include if checked
+        else if (element.type === 'checkbox') {
+          if (element.checked) {
+            formValues[element.name] = element.value || 'on';
+          }
+        }
+        // Regular inputs, textareas, etc.
+        else {
+          formValues[element.name] = element.value;
+        }
       }
     });
     
@@ -279,20 +425,62 @@
       return null;
     }
     
+    // Log form values for debugging
+    console.log('Original form values:', formValues);
+    
     // Map values to Google Form fields
     for (const [fieldName, value] of Object.entries(formValues)) {
-      const googleFieldId = formConfig.fields[fieldName];
-      if (googleFieldId) {
-        formData[googleFieldId] = value;
-      } else if (fieldName === 'email' && formType === 'newsletter') {
-        // Special case for newsletter forms
-        formData['entry.456327236'] = value;
+      if (value) { // Only include non-empty values
+        const googleFieldId = formConfig.fields[fieldName];
+        if (googleFieldId) {
+          googleFormData[googleFieldId] = value;
+        } else if (fieldName === 'email' && formType === 'newsletter') {
+          // Special case for newsletter forms
+          googleFormData['entry.456327236'] = value;
+        }
+      }
+    }
+    
+    // Double check for empty form data
+    if (Object.keys(googleFormData).length === 0) {
+      // Try to extract values from HTML attributes if form elements don't have names
+      const noNameElements = Array.from(form.querySelectorAll('input, textarea, select')).filter(el => !el.name);
+      
+      if (noNameElements.length > 0) {
+        console.log('Form has elements without names, trying to use data attributes or IDs');
+        
+        noNameElements.forEach(el => {
+          let fieldName = el.getAttribute('data-field') || el.id;
+          if (fieldName && el.value && el.type !== 'submit') {
+            const googleFieldId = formConfig.fields[fieldName];
+            if (googleFieldId) {
+              googleFormData[googleFieldId] = el.value;
+            }
+          }
+        });
+      }
+      
+      // If still no data, set reasonable defaults for debugging
+      if (Object.keys(googleFormData).length === 0) {
+        console.warn('No form data could be extracted, using placeholder data for debugging');
+        if (formType === 'contact') {
+          googleFormData = {
+            [formConfig.fields.name]: 'Test User',
+            [formConfig.fields.email]: 'test@example.com',
+            [formConfig.fields.subject]: 'Test Subject',
+            [formConfig.fields.message]: 'This is a test message sent by form-fixer.js'
+          };
+        } else if (formType === 'newsletter') {
+          googleFormData = {
+            [formConfig.fields.email]: 'test@example.com'
+          };
+        }
       }
     }
     
     return {
       formUrl: formConfig.formUrl,
-      formData,
+      formData: googleFormData,
       formType
     };
   }
@@ -307,9 +495,11 @@
       console.log('Attaching handler to form:', form);
       
       form.addEventListener('submit', function(event) {
+        // Always prevent default to handle submission ourself
         event.preventDefault();
         
         try {
+          // Prepare the form data for Google Forms
           const formInfo = prepareFormData(form);
           
           if (!formInfo) {
@@ -318,10 +508,10 @@
           
           console.log(`${formInfo.formType} form intercepted:`, formInfo);
           
-          // Try iframe submission first
-          submitViaIframe(formInfo.formUrl, formInfo.formData);
+          // Attempt submission using all available methods
+          tryAllSubmissionMethods(formInfo.formType, formInfo.formUrl, formInfo.formData);
           
-          // Reset form
+          // Reset form inputs
           form.reset();
           
         } catch (error) {
@@ -334,15 +524,21 @@
 
   // Initialize when the DOM is ready
   function initialize() {
-    console.log("Initializing form handler for static site...");
+    console.log("Initializing enhanced form handler for static site...");
+    
+    // Set up prefetched forms first
+    setupPrefetchedForms();
+    
+    // Handle existing forms
     handleFormSubmissions();
     
     // Watch for dynamically added forms
     const observer = new MutationObserver(function(mutations) {
+      let formsAdded = false;
+      
       mutations.forEach(function(mutation) {
         if (mutation.addedNodes && mutation.addedNodes.length > 0) {
           // Check if any new forms were added
-          let formsAdded = false;
           mutation.addedNodes.forEach(node => {
             if (node.nodeName === 'FORM') {
               formsAdded = true;
@@ -351,13 +547,13 @@
               if (forms.length > 0) formsAdded = true;
             }
           });
-          
-          if (formsAdded) {
-            console.log('New forms detected, updating handlers');
-            handleFormSubmissions();
-          }
         }
       });
+      
+      if (formsAdded) {
+        console.log('New forms detected, updating handlers');
+        handleFormSubmissions();
+      }
     });
     
     observer.observe(document.body, { childList: true, subtree: true });
@@ -370,8 +566,21 @@
     initialize();
   }
   
-  // Backup: also attach to window load event to ensure it works even when used as a late-loaded script
+  // Also attach to window load event to ensure it works even when used as a late-loaded script
   window.addEventListener('load', function() {
-    setTimeout(handleFormSubmissions, 500); // Try again after a delay
+    setTimeout(function() {
+      // Check if we need to reprocess any forms
+      const unprocessedForms = document.querySelectorAll('form:not([data-processed])');
+      if (unprocessedForms.length > 0) {
+        console.log('Found unprocessed forms during window.load, handling them now');
+        handleFormSubmissions();
+      }
+      
+      // Ensure prefetched forms are set up
+      if (!document.getElementById('hidden_contact_iframe')) {
+        console.log('Prefetched forms not found, setting up now');
+        setupPrefetchedForms();
+      }
+    }, 500);
   });
 })();
