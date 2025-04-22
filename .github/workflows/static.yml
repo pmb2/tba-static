@@ -49,56 +49,181 @@ jobs:
           # Add CSS variables directly to avoid JavaScript dependency
           cat > ./gh-pages/variables.css << EOF
           :root {
-            --primary: #3498db;
-            --secondary: #2ecc71;
-            --secondary-light: #4cd787;
-            --primary-foreground: #ffffff;
+            --primary: #3498db !important;
+            --secondary: #2ecc71 !important;
+            --secondary-light: #4cd787 !important;
+            --primary-foreground: #ffffff !important;
+            --primary-light: #5faee3 !important;
           }
           EOF
           
-          # Add this CSS file to all HTML files
+          # Add CSS and metadata to all HTML files with high browser compatibility
           find ./gh-pages -name "*.html" | while read file; do
-            sed -i 's#</head>#<link rel="stylesheet" href="/variables.css">\n<meta name="github-repo-owner" content="TheBackusAgency">\n<meta name="github-repo-name" content="tba-static">\n</head>#' "$file"
+            # First add the required meta tags
+            sed -i 's#<meta name="viewport"#<meta name="github-repo-owner" content="TheBackusAgency">\n<meta name="github-repo-name" content="tba-static">\n<meta name="viewport"#' "$file"
+            
+            # Then add CSS variables as early as possible for immediate styling
+            sed -i 's#<head>#<head>\n<link rel="stylesheet" href="/variables.css">#' "$file"
+            
+            # Add a browser compatibility meta tag
+            sed -i 's#<head>#<head>\n<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">#' "$file"
           done
           
-          # Simple form handler that avoids JavaScript complexity
+          # More robust form handler with cross-browser compatibility
           cat > ./gh-pages/form-handler.js << EOF
-          document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('form').forEach(function(form) {
-              form.addEventListener('submit', function(e) {
-                e.preventDefault();
+          (function() {
+            // Function to safely get repository metadata
+            function getRepoInfo() {
+              var owner = 'TheBackusAgency';
+              var repo = 'tba-static';
+              
+              try {
+                var ownerMeta = document.querySelector('meta[name="github-repo-owner"]');
+                var repoMeta = document.querySelector('meta[name="github-repo-name"]');
                 
-                // Get form data
-                const formData = {};
-                new FormData(form).forEach((value, key) => {
-                  formData[key] = value;
-                });
+                if (ownerMeta && ownerMeta.content) {
+                  owner = ownerMeta.content;
+                }
                 
-                // Create issue URL
-                const issueBody = encodeURIComponent(Object.entries(formData)
-                  .map(([key, value]) => key + ': "' + value + '"')
-                  .join('\\n'));
+                if (repoMeta && repoMeta.content) {
+                  repo = repoMeta.content;
+                }
+              } catch (e) {
+                console.error('Error getting repo info:', e);
+              }
+              
+              return { owner: owner, repo: repo };
+            }
+            
+            // Handle form submission in a cross-browser compatible way
+            function handleFormSubmit(e) {
+              e.preventDefault();
+              
+              var form = e.target;
+              var formType = form.getAttribute('data-form-type') || 'contact';
+              
+              // Get form data - using older syntax for IE compatibility
+              var formData = {};
+              var formElements = form.elements;
+              
+              for (var i = 0; i < formElements.length; i++) {
+                var element = formElements[i];
+                if (element.name && element.value) {
+                  formData[element.name] = element.value;
+                }
+              }
+              
+              // Get repository info
+              var repoInfo = getRepoInfo();
+              
+              // Format issue data
+              var issueBody = '';
+              for (var key in formData) {
+                if (formData.hasOwnProperty(key)) {
+                  issueBody += key + ': "' + formData[key] + '"\\n';
+                }
+              }
+              
+              // Build GitHub issue URL
+              var url = 'https://github.com/' + repoInfo.owner + '/' + repoInfo.repo + 
+                        '/issues/new?title=Form+Submission:+' + encodeURIComponent(formType) + 
+                        '+Form&body=' + encodeURIComponent(issueBody) + 
+                        '&labels=form-submission,' + encodeURIComponent(formType);
+              
+              // Use a fallback approach for opening windows
+              try {
+                var newWindow = window.open(url, '_blank');
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                  // Popup blocked, fallback to location change
+                  window.location.href = url;
+                }
+              } catch (e) {
+                window.location.href = url;
+              }
+              
+              // Show success message
+              alert('Form submitted successfully! Redirecting to GitHub to complete submission.');
+              
+              // Reset form
+              form.reset();
+              
+              // Show success message if there's a message container
+              var messageContainer = form.querySelector('.form-message');
+              if (messageContainer) {
+                messageContainer.style.display = 'block';
+                messageContainer.innerHTML = '<div class="p-3 bg-green-500/20 border border-green-500/50 rounded-md text-white mt-4">Form submitted successfully!</div>';
                 
-                const url = 'https://github.com/TheBackusAgency/tba-static/issues/new?title=Form+Submission&body=' + issueBody;
+                // Hide message after 5 seconds
+                setTimeout(function() {
+                  messageContainer.style.display = 'none';
+                }, 5000);
+              }
+            }
+            
+            // Initialize form handling when DOM is ready
+            function initForms() {
+              var forms = document.querySelectorAll('form');
+              
+              for (var i = 0; i < forms.length; i++) {
+                var form = forms[i];
                 
-                // Open in new window
-                window.open(url, '_blank');
-                
-                // Show success alert
-                alert('Form submitted successfully!');
-                
-                // Reset form
-                form.reset();
-              });
-            });
-          });
+                // Prevent multiple handlers from being attached
+                if (!form.getAttribute('data-handler-attached')) {
+                  form.setAttribute('data-handler-attached', 'true');
+                  form.addEventListener('submit', handleFormSubmit);
+                }
+              }
+            }
+            
+            // Attach the handler depending on browser support
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initForms);
+            } else {
+              initForms();
+            }
+            
+            // Also run on window load as a fallback
+            window.addEventListener('load', initForms);
+          })();
           EOF
           
-          # Add the form handler to HTML files with forms
+          # Add the form handler to ALL HTML files to ensure it's available
+          # This guarantees the script is loaded regardless of when/how forms appear
           find ./gh-pages -name "*.html" | while read file; do
-            if grep -q "<form" "$file"; then
-              sed -i 's#</body>#<script src="/form-handler.js"></script></body>#' "$file"
+            # First check if the script is already included
+            if ! grep -q "form-handler.js" "$file"; then
+              # Add the script just before closing body tag with proper attributes
+              sed -i 's#</body>#<script src="/form-handler.js" type="text/javascript"></script></body>#' "$file"
             fi
+          done
+          
+          # Also create a global CSS file for fixing cross-browser issues
+          cat > ./gh-pages/browser-fixes.css << EOF
+          /* Fix for Microsoft Edge and IE */
+          .rounded-full {
+            border-radius: 9999px !important;
+          }
+          
+          /* Fix for form elements */
+          input, select, textarea {
+            color: white !important;
+          }
+          
+          /* Fix for buttons in Firefox */
+          button {
+            cursor: pointer !important;
+          }
+          
+          /* Fix for background gradients */
+          .bg-gradient-to-br {
+            background-image: linear-gradient(to bottom right, var(--secondary-light, #4cd787), var(--secondary, #2ecc71)) !important;
+          }
+          EOF
+          
+          # Add browser-fixes.css to all HTML files
+          find ./gh-pages -name "*.html" | while read file; do
+            # Add the browser fixes CSS file
+            sed -i 's#</head>#<link rel="stylesheet" href="/browser-fixes.css">\n</head>#' "$file"
           done
           
           # Create 404 page if it doesn't exist
