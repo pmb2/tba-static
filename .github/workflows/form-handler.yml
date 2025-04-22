@@ -2,7 +2,7 @@ name: Process Form Submissions
 
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 permissions:
   contents: write
@@ -27,15 +27,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pyyaml
-          pip install sqlite3 || echo "Using built-in sqlite3 module"
+          pip install pysqlite3 || echo "Using built-in sqlite3 module"
       
-      - name: Initialize Database
+      - name: Ensure db directory exists
+        run: mkdir -p db
+      
+      - name: Initialize database if needed
         run: |
-          # Initialize the database if it doesn't exist
-          if [ ! -f "db/forms.db" ] || [ ! -s "db/forms.db" ]; then
-            echo "Initializing database from schema..."
-            mkdir -p db
+          if [ ! -f "db/forms.db" ]; then
+            echo "Creating database from schema..."
             sqlite3 db/forms.db < db/schema.sql
+          else
+            echo "Database already exists"
           fi
 
       - name: Extract form data
@@ -47,86 +50,140 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
           echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
           
-          # Extract form type from issue title
+          # Determine form type from issue title
           if [[ "${{ github.event.issue.title }}" == *"Contact Form"* ]]; then
-            echo "FORM_TYPE=contact_form" >> $GITHUB_ENV
+            echo "FORM_TYPE=contact" >> $GITHUB_ENV
           elif [[ "${{ github.event.issue.title }}" == *"Newsletter Form"* ]]; then
-            echo "FORM_TYPE=newsletter_form" >> $GITHUB_ENV
+            echo "FORM_TYPE=newsletter" >> $GITHUB_ENV
           else
             echo "FORM_TYPE=unknown" >> $GITHUB_ENV
           fi
       
+      - name: Debug form data
+        run: |
+          echo "Form type: ${{ env.FORM_TYPE }}"
+          echo "Issue title: ${{ env.ISSUE_TITLE }}"
+          echo "First 100 chars of body: ${ISSUE_BODY:0:100}"
+      
       - name: Process form submission
         run: |
           cat > process_form.py << 'EOF'
-          import sys
-          import os
           import sqlite3
-          import json
+          import os
+          import sys
+          import re
           import yaml
           
-          def process_form_submission(title, body, form_type):
+          def parse_issue_body(body):
+              """Parse the issue body to extract form data"""
               data = {}
               
-              # Parse the YAML from the issue body
+              # Try YAML parsing first
               try:
-                  data = yaml.safe_load(body)
-              except yaml.YAMLError:
-                  try:
-                      data = json.loads(body)
-                  except json.JSONDecodeError:
-                      print(f"Could not parse form data: {body}")
-                      return False
-              
-              print(f"Processed data: {data}")
-              
-              # Connect to the database
-              conn = sqlite3.connect('db/forms.db')
-              cursor = conn.cursor()
-              
-              try:
-                  if form_type == 'contact_form':
-                      # Insert into contact_form table
-                      cursor.execute(
-                          "INSERT INTO contact_form (name, email, message) VALUES (?, ?, ?)",
-                          (data.get('name', ''), data.get('email', ''), data.get('message', ''))
-                      )
-                  elif form_type == 'newsletter_form':
-                      # Insert into newsletter_form table
-                      cursor.execute(
-                          "INSERT INTO newsletter_form (email) VALUES (?)",
-                          (data.get('email', ''),)
-                      )
-                  else:
-                      print(f"Unknown form type: {form_type}")
-                      return False
-                  
-                  conn.commit()
-                  print(f"Successfully processed {form_type} submission")
-                  return True
+                  # The body might have YAML format (key: "value")
+                  yaml_data = yaml.safe_load(body)
+                  if isinstance(yaml_data, dict):
+                      return yaml_data
               except Exception as e:
-                  print(f"Error processing form submission: {e}")
-                  return False
-              finally:
-                  conn.close()
+                  print(f"YAML parsing failed: {e}")
+              
+              # Fallback to regex parsing
+              pattern = r'([a-zA-Z0-9_-]+):\s*"([^"]*)"'
+              matches = re.findall(pattern, body)
+              
+              for key, value in matches:
+                  data[key] = value
+              
+              return data
           
-          if __name__ == "__main__":
-              title = os.environ.get('ISSUE_TITLE', '')
-              body = os.environ.get('ISSUE_BODY', '')
+          def process_contact_form(cursor, data):
+              """Process contact form submission"""
+              name = data.get('name', '')
+              email = data.get('email', '')
+              phone = data.get('phone', '')
+              subject = data.get('subject', '')
+              message = data.get('message', '')
+              
+              cursor.execute(
+                  "INSERT INTO contact_form (name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)",
+                  (name, email, phone, subject, message)
+              )
+              
+              print(f"Inserted contact form data for {name} ({email})")
+              return True
+          
+          def process_newsletter_form(cursor, data):
+              """Process newsletter form submission"""
+              email = data.get('email', '')
+              
+              if not email:
+                  print("Error: No email found in newsletter form submission")
+                  return False
+              
+              cursor.execute(
+                  "INSERT INTO newsletter_form (email) VALUES (?)",
+                  (email,)
+              )
+              
+              print(f"Inserted newsletter subscription for {email}")
+              return True
+          
+          def main():
+              issue_body = os.environ.get('ISSUE_BODY', '')
               form_type = os.environ.get('FORM_TYPE', '')
               
-              if not title or not body or not form_type or form_type == 'unknown':
-                  print("Missing required information")
+              print(f"Processing form submission of type: {form_type}")
+              
+              # Parse the form data
+              form_data = parse_issue_body(issue_body)
+              
+              if not form_data:
+                  print("Error: Could not parse form data from issue body")
                   sys.exit(1)
               
-              success = process_form_submission(title, body, form_type)
-              if not success:
+              print(f"Parsed form data: {form_data}")
+              
+              # Connect to the database
+              try:
+                  conn = sqlite3.connect('db/forms.db')
+                  cursor = conn.cursor()
+                  
+                  # Ensure tables exist
+                  with open('db/schema.sql', 'r') as f:
+                      schema_sql = f.read()
+                      cursor.executescript(schema_sql)
+                  
+                  # Process based on form type
+                  success = False
+                  if form_type == 'contact':
+                      success = process_contact_form(cursor, form_data)
+                  elif form_type == 'newsletter':
+                      success = process_newsletter_form(cursor, form_data)
+                  else:
+                      print(f"Unknown form type: {form_type}")
+                      sys.exit(1)
+                  
+                  if success:
+                      conn.commit()
+                      print("Form data successfully processed and saved")
+                  else:
+                      print("Error occurred during form processing")
+                      sys.exit(1)
+                  
+              except Exception as e:
+                  print(f"Database error: {e}")
                   sys.exit(1)
+              finally:
+                  if 'conn' in locals():
+                      conn.close()
+          
+          if __name__ == "__main__":
+              main()
           EOF
           
           python process_form.py
-          
-      - name: Add success comment to issue
+      
+      - name: Add comment to issue
         if: success()
         uses: actions/github-script@v6
         with:
@@ -146,7 +203,7 @@ jobs:
               labels: ['processed']
             });
       
-      - name: Commit and push database changes
+      - name: Commit database changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
