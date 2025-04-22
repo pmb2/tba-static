@@ -34,67 +34,83 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
-      - name: Prepare static site for GitHub Pages
+      - name: Move out directory content to root for deployment
         run: |
-          # Create a script to fix the static site for GitHub Pages
-          cat > ./prepare-static-site.sh << 'EOF'
-          #!/bin/bash
+          # Create a directory to store the correctly structured content
+          mkdir -p ./gh-pages
           
-          # Prepare the static site for GitHub Pages deployment
-          ROOT_DIR="."
-          OUT_DIR="./out"
+          # Copy everything from out to the gh-pages directory
+          cp -r ./out/* ./gh-pages/
           
-          # First, create root-level files for GitHub Pages
-          echo "Creating root-level files"
-          touch "$ROOT_DIR/.nojekyll"
-          echo "backus.agency" > "$ROOT_DIR/CNAME"
+          # Create necessary files
+          touch ./gh-pages/.nojekyll
+          echo "backus.agency" > ./gh-pages/CNAME
           
-          # Then create files inside the out directory
-          echo "Creating .nojekyll file in output directory"
-          touch "$OUT_DIR/.nojekyll"
+          # Add CSS variables directly to avoid JavaScript dependency
+          cat > ./gh-pages/variables.css << EOF
+          :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --secondary-light: #4cd787;
+            --primary-foreground: #ffffff;
+          }
+          EOF
           
-          echo "Creating CNAME file in output directory"
-          echo "backus.agency" > "$OUT_DIR/CNAME"
+          # Add this CSS file to all HTML files
+          find ./gh-pages -name "*.html" | while read file; do
+            sed -i 's#</head>#<link rel="stylesheet" href="/variables.css">\n<meta name="github-repo-owner" content="TheBackusAgency">\n<meta name="github-repo-name" content="tba-static">\n</head>#' "$file"
+          done
           
-          # Create 404 page if it doesn't exist
-          if [ ! -f "$OUT_DIR/404.html" ]; then
-            echo "Creating 404 page"
-            cp "$OUT_DIR/index.html" "$OUT_DIR/404.html"
-          fi
+          # Simple form handler that avoids JavaScript complexity
+          cat > ./gh-pages/form-handler.js << EOF
+          document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form').forEach(function(form) {
+              form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = {};
+                new FormData(form).forEach((value, key) => {
+                  formData[key] = value;
+                });
+                
+                // Create issue URL
+                const issueBody = encodeURIComponent(Object.entries(formData)
+                  .map(([key, value]) => key + ': "' + value + '"')
+                  .join('\\n'));
+                
+                const url = 'https://github.com/TheBackusAgency/tba-static/issues/new?title=Form+Submission&body=' + issueBody;
+                
+                // Open in new window
+                window.open(url, '_blank');
+                
+                // Show success alert
+                alert('Form submitted successfully!');
+                
+                // Reset form
+                form.reset();
+              });
+            });
+          });
+          EOF
           
-          # Add GitHub repository metadata to HTML files
-          echo "Adding repository metadata to HTML files"
-          find "$OUT_DIR" -name "*.html" -type f | grep -v -E "\.git/|_next/" | while read html_file; do
-            if ! grep -q 'meta name="github-repo-owner"' "$html_file"; then
-              sed -i 's#<head>#<head>\n  <meta name="github-repo-owner" content="TheBackusAgency">\n  <meta name="github-repo-name" content="tba-static">#' "$html_file"
-              echo "Added repository metadata to $html_file"
-            fi
-            
-            # Insert the path-fixer.js script for CSS variables
-            if ! grep -q "path-fixer.js" "$html_file"; then
-              sed -i 's#</body>#<script src="/path-fixer.js"></script></body>#' "$html_file"
-              echo "Added path-fixer.js to $html_file"
-            fi
-            
-            # Insert the form-fixer.js script for HTML files with forms
-            if grep -q "<form" "$html_file" && ! grep -q "form-fixer.js" "$html_file"; then
-              sed -i 's#</head>#<script src="/form-fixer.js"></script></head>#' "$html_file"
-              echo "Added form-fixer.js to $html_file"
+          # Add the form handler to HTML files with forms
+          find ./gh-pages -name "*.html" | while read file; do
+            if grep -q "<form" "$file"; then
+              sed -i 's#</body>#<script src="/form-handler.js"></script></body>#' "$file"
             fi
           done
           
-          echo "Static site preparation complete"
-          EOF
-          
-          # Make the script executable and run it
-          chmod +x ./prepare-static-site.sh
-          ./prepare-static-site.sh
+          # Create 404 page if it doesn't exist
+          if [ ! -f "./gh-pages/404.html" ]; then
+            cp ./gh-pages/index.html ./gh-pages/404.html
+          fi
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the out directory directly
-          path: './out'
+          # Upload the gh-pages directory
+          path: './gh-pages'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
