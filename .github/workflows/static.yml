@@ -34,20 +34,20 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
-      - name: Move out directory content to root for deployment
+      - name: Prepare content for deployment
         run: |
-          # Create a directory to store the correctly structured content
-          mkdir -p ./gh-pages
+          # Make sure we have a valid out directory with content
+          if [ ! -d "./out" ] || [ ! -f "./out/index.html" ]; then
+            echo "Error: No valid out directory with index.html found!"
+            exit 1
+          fi
           
-          # Copy everything from out to the gh-pages directory
-          cp -r ./out/* ./gh-pages/
-          
-          # Create necessary files
-          touch ./gh-pages/.nojekyll
-          echo "backus.agency" > ./gh-pages/CNAME
+          # Create necessary files directly in the out directory
+          touch ./out/.nojekyll
+          echo "backus.agency" > ./out/CNAME
           
           # Add CSS variables directly to avoid JavaScript dependency
-          cat > ./gh-pages/variables.css << EOF
+          cat > ./out/variables.css << EOF
           :root {
             --primary: #3498db !important;
             --secondary: #2ecc71 !important;
@@ -58,7 +58,7 @@ jobs:
           EOF
           
           # Add CSS and metadata to all HTML files with high browser compatibility
-          find ./gh-pages -name "*.html" | while read file; do
+          find ./out -name "*.html" | while read file; do
             # First add the required meta tags
             sed -i 's#<meta name="viewport"#<meta name="github-repo-owner" content="TheBackusAgency">\n<meta name="github-repo-name" content="tba-static">\n<meta name="viewport"#' "$file"
             
@@ -70,7 +70,7 @@ jobs:
           done
           
           # More robust form handler with cross-browser compatibility
-          cat > ./gh-pages/form-handler.js << EOF
+          cat > ./out/form-handler.js << EOF
           (function() {
             // Function to safely get repository metadata
             function getRepoInfo() {
@@ -189,7 +189,7 @@ jobs:
           
           # Add the form handler to ALL HTML files to ensure it's available
           # This guarantees the script is loaded regardless of when/how forms appear
-          find ./gh-pages -name "*.html" | while read file; do
+          find ./out -name "*.html" | while read file; do
             # First check if the script is already included
             if ! grep -q "form-handler.js" "$file"; then
               # Add the script just before closing body tag with proper attributes
@@ -198,7 +198,7 @@ jobs:
           done
           
           # Also create a global CSS file for fixing cross-browser issues
-          cat > ./gh-pages/browser-fixes.css << EOF
+          cat > ./out/browser-fixes.css << EOF
           /* Fix for Microsoft Edge and IE */
           .rounded-full {
             border-radius: 9999px !important;
@@ -221,21 +221,22 @@ jobs:
           EOF
           
           # Add browser-fixes.css to all HTML files
-          find ./gh-pages -name "*.html" | while read file; do
+          find ./out -name "*.html" | while read file; do
             # Add the browser fixes CSS file
             sed -i 's#</head>#<link rel="stylesheet" href="/browser-fixes.css">\n</head>#' "$file"
           done
           
           # Create 404 page if it doesn't exist
-          if [ ! -f "./gh-pages/404.html" ]; then
-            cp ./gh-pages/index.html ./gh-pages/404.html
+          if [ ! -f "./out/404.html" ]; then
+            cp ./out/index.html ./out/404.html
           fi
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the gh-pages directory
-          path: './gh-pages'
+          # Upload directly from the out directory instead of using root directory
+          path: './out'
+      
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
