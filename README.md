@@ -43,6 +43,18 @@ The database has two tables:
 - `contact_form` - For contact form submissions
 - `newsletter_form` - For newsletter subscriptions
 
+## Development
+
+To develop locally, you'll need to:
+
+1. Clone the repository
+2. Navigate to the repository folder
+3. Open the HTML files in your browser
+
+## Deployment
+
+The site is automatically deployed to GitHub Pages when changes are pushed to the main branch. The GitHub Actions workflow in `.github/workflows/static.yml` handles the deployment.
+
 ## Form Submission Process
 
 1. User fills out a form on the website

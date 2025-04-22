@@ -1,0 +1,155 @@
+name: Process Form Submissions
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process-form:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.title, 'Form Submission:')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          pip install sqlite3 || echo "Using built-in sqlite3 module"
+      
+      - name: Initialize Database
+        run: |
+          # Initialize the database if it doesn't exist
+          if [ ! -f "db/forms.db" ] || [ ! -s "db/forms.db" ]; then
+            echo "Initializing database from schema..."
+            mkdir -p db
+            sqlite3 db/forms.db < db/schema.sql
+          fi
+
+      - name: Extract form data
+        id: extract-data
+        run: |
+          echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
+          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
+          
+          # Extract form type from issue title
+          if [[ "${{ github.event.issue.title }}" == *"Contact Form"* ]]; then
+            echo "FORM_TYPE=contact_form" >> $GITHUB_ENV
+          elif [[ "${{ github.event.issue.title }}" == *"Newsletter Form"* ]]; then
+            echo "FORM_TYPE=newsletter_form" >> $GITHUB_ENV
+          else
+            echo "FORM_TYPE=unknown" >> $GITHUB_ENV
+          fi
+      
+      - name: Process form submission
+        run: |
+          cat > process_form.py << 'EOF'
+          import sys
+          import os
+          import sqlite3
+          import json
+          import yaml
+          
+          def process_form_submission(title, body, form_type):
+              data = {}
+              
+              # Parse the YAML from the issue body
+              try:
+                  data = yaml.safe_load(body)
+              except yaml.YAMLError:
+                  try:
+                      data = json.loads(body)
+                  except json.JSONDecodeError:
+                      print(f"Could not parse form data: {body}")
+                      return False
+              
+              print(f"Processed data: {data}")
+              
+              # Connect to the database
+              conn = sqlite3.connect('db/forms.db')
+              cursor = conn.cursor()
+              
+              try:
+                  if form_type == 'contact_form':
+                      # Insert into contact_form table
+                      cursor.execute(
+                          "INSERT INTO contact_form (name, email, message) VALUES (?, ?, ?)",
+                          (data.get('name', ''), data.get('email', ''), data.get('message', ''))
+                      )
+                  elif form_type == 'newsletter_form':
+                      # Insert into newsletter_form table
+                      cursor.execute(
+                          "INSERT INTO newsletter_form (email) VALUES (?)",
+                          (data.get('email', ''),)
+                      )
+                  else:
+                      print(f"Unknown form type: {form_type}")
+                      return False
+                  
+                  conn.commit()
+                  print(f"Successfully processed {form_type} submission")
+                  return True
+              except Exception as e:
+                  print(f"Error processing form submission: {e}")
+                  return False
+              finally:
+                  conn.close()
+          
+          if __name__ == "__main__":
+              title = os.environ.get('ISSUE_TITLE', '')
+              body = os.environ.get('ISSUE_BODY', '')
+              form_type = os.environ.get('FORM_TYPE', '')
+              
+              if not title or not body or not form_type or form_type == 'unknown':
+                  print("Missing required information")
+                  sys.exit(1)
+              
+              success = process_form_submission(title, body, form_type)
+              if not success:
+                  sys.exit(1)
+          EOF
+          
+          python process_form.py
+          
+      - name: Add success comment to issue
+        if: success()
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: ${{ env.ISSUE_NUMBER }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Form data has been successfully processed and stored in the database.'
+            });
+            github.rest.issues.update({
+              issue_number: ${{ env.ISSUE_NUMBER }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              labels: ['processed']
+            });
+      
+      - name: Commit and push database changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add db/forms.db
+          git commit -m "Add form submission from issue #${{ env.ISSUE_NUMBER }}" || echo "No changes to commit"
+          git push
