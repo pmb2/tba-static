@@ -65,8 +65,10 @@ jobs:
           # Fix paths in HTML files
           echo "Fixing paths in HTML files"
           for html_file in $(find "$OUT_DIR" -name "*.html" | grep -v -E "\.git\/|_next\/"); do
-            # Replace /out/ references if there are any
+            # Replace ALL /out/ references
             sed -i 's#/out/#/#g' "$html_file"
+            # Double check with a more aggressive replacement to catch any edge cases
+            sed -i 's#[\"'\''(]\/out\/#$1/#g' "$html_file"
             
             # Insert the path-fixer.js script if not already included
             if ! grep -q "path-fixer.js" "$html_file"; then

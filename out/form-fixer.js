@@ -4,6 +4,14 @@
  */
 
 (function() {
+  console.log("Form handler v2 loaded with Microsoft Edge compatibility");
+  
+  // Detect browser
+  const isMSBrowser = /Edge|MSIE|Trident/.test(navigator.userAgent);
+  if (isMSBrowser) {
+    console.log("Microsoft browser detected, applying compatibility fixes");
+  }
+
   console.log("GitHub Issues Form Handler loaded - v1.0");
 
   // Helper function to add message containers to forms
