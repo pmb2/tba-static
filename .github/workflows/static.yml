@@ -62,15 +62,15 @@ jobs:
             cp "$OUT_DIR/index.html" "$OUT_DIR/404.html"
           fi
           
-          # Fix paths in HTML files - remove all references to /out/
-          echo "Fixing paths in HTML files"
+          # Add GitHub repository metadata to HTML files
+          echo "Adding repository metadata to HTML files"
           find "$OUT_DIR" -name "*.html" -type f | grep -v -E "\.git/|_next/" | while read html_file; do
-            # Replace any references to /out/ path with root path
-            sed -i 's#/out/#/#g' "$html_file"
-            sed -i 's#\"/out/#\"/#g' "$html_file"
-            sed -i "s#'/out/#'/#g" "$html_file"
+            if ! grep -q 'meta name="github-repo-owner"' "$html_file"; then
+              sed -i 's#<head>#<head>\n  <meta name="github-repo-owner" content="TheBackusAgency">\n  <meta name="github-repo-name" content="tba-static">#' "$html_file"
+              echo "Added repository metadata to $html_file"
+            fi
             
-            # Insert the path-fixer.js script if not already included
+            # Insert the path-fixer.js script for CSS variables
             if ! grep -q "path-fixer.js" "$html_file"; then
               sed -i 's#</body>#<script src="/path-fixer.js"></script></body>#' "$html_file"
               echo "Added path-fixer.js to $html_file"
@@ -83,41 +83,6 @@ jobs:
             fi
           done
           
-          # Create HTML redirects for directory paths
-          echo "Creating directory redirects"
-          find "$OUT_DIR" -type d | grep -v -E "\.git/|_next/" | while read dir; do
-            # Skip the out directory itself
-            if [ "$dir" == "$OUT_DIR" ]; then
-              continue
-            fi
-            
-            # Create an HTML file for paths without trailing slashes
-            # For example, create /about.html that redirects to /about/index.html
-            rel_path=${dir#$OUT_DIR}
-            if [ "$rel_path" != "" ]; then
-              html_file="$OUT_DIR${rel_path}.html"
-              if [ ! -f "$html_file" ]; then
-                mkdir -p "$(dirname "$html_file")"
-                echo "<!DOCTYPE html>" > "$html_file"
-                echo "<html>" >> "$html_file"
-                echo "<head>" >> "$html_file"
-                echo "  <meta charset=\"utf-8\">" >> "$html_file"
-                echo "  <title>${rel_path#/}</title>" >> "$html_file"
-                echo "  <meta http-equiv=\"refresh\" content=\"0; url=${rel_path}/index.html\">" >> "$html_file"
-                echo "</head>" >> "$html_file"
-                echo "<body>" >> "$html_file"
-                echo "  Redirecting to <a href=\"${rel_path}/index.html\">${rel_path}/index.html</a>" >> "$html_file"
-                echo "</body>" >> "$html_file"
-                echo "</html>" >> "$html_file"
-                echo "Created redirect: $html_file -> ${rel_path}/index.html"
-              fi
-            fi
-          done
-          
-          # Double-check for any remaining /out/ references
-          echo "Double-checking for any remaining /out/ references"
-          grep -r "/out/" "$OUT_DIR" --include="*.html" --include="*.js" --include="*.css" || echo "No /out/ references found"
-          
           echo "Static site preparation complete"
           EOF
           
@@ -128,7 +93,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the out directory
+          # Upload the out directory directly
           path: './out'
       - name: Deploy to GitHub Pages
         id: deployment
