@@ -1,39 +1,24 @@
-// TBA Path Fixer
+// TBA Path Fixer - Cross-browser compatible version
 // Fixes navigation paths for static hosting on GitHub Pages
 
 (function() {
-  console.log("Path Fixer script v3 loaded!");
-
-  // Detect browser
-  const isMSBrowser = /Edge|MSIE|Trident/.test(navigator.userAgent);
+  console.log("Path Fixer loaded - browser compatible version!");
   
-  // Set browser-specific settings
-  if (isMSBrowser) {
-    console.log("Microsoft browser detected, applying compatibility fixes");
+  // Define CSS variables for consistent styling across browsers
+  const rootStyle = document.documentElement.style;
+  if (!rootStyle.getPropertyValue('--primary')) {
+    rootStyle.setProperty('--primary', '#3498db');
+  }
+  if (!rootStyle.getPropertyValue('--secondary')) {
+    rootStyle.setProperty('--secondary', '#2ecc71');
+  }
+  if (!rootStyle.getPropertyValue('--secondary-light')) {
+    rootStyle.setProperty('--secondary-light', '#4cd787');
   }
   
-  // Detect if we're in a redirect or loop
-  const isInRedirectLoop = (function() {
-    // Check if the URL contains multiple occurrences of 'index.html'
-    const path = window.location.pathname;
-    const indexCount = (path.match(/index\.html/g) || []).length;
-    return indexCount > 1;
-  })();
-
-  // If we're in a redirect loop, break out of it
-  if (isInRedirectLoop) {
-    console.warn("Detected redirect loop, redirecting to homepage");
-    window.location.href = "/";
-    return;
-  }
-  
-  // Remove 'out' from the path if it somehow remains in the URL
-  const currentPath = window.location.pathname;
-  if (currentPath.startsWith('/out/') || currentPath.includes('/out/')) {
-    const newPath = currentPath.replace('/out/', '/');
-    console.warn(`Redirecting from ${currentPath} to ${newPath}`);
-    window.location.href = newPath;
-    return;
+  // Simple utility to check if a string starts with any of the prefixes
+  function startsWithAny(str, prefixes) {
+    return prefixes.some(prefix => str.startsWith(prefix));
   }
   
   // Function to fix all links on the page
@@ -44,65 +29,70 @@
     links.forEach(link => {
       const href = link.getAttribute('href');
       
-      // Skip external links, anchor links, or already fixed links
-      if (!href || href.startsWith('http') || href.startsWith('#') || 
-          href.startsWith('mailto:') || href.startsWith('tel:') || 
-          href.includes('index.html')) {
+      // Skip if href is missing or it's a special type of link
+      if (!href || startsWithAny(href, ['http', '#', 'mailto:', 'tel:'])) {
         return;
       }
       
-      // Remove '/out/' from any links that contain it
-      if (href.startsWith('/out/') || href.includes('/out/')) {
-        const newHref = href.replace('/out/', '/');
+      // Fix /out/ references if they exist
+      if (href.includes('/out/')) {
+        const newHref = href.replace(/\/out\//g, '/');
         link.setAttribute('href', newHref);
-        console.log(`Removed /out/ from link: ${href} → ${newHref}`);
+      }
+      
+      // Don't modify links that already have an extension
+      if (href.match(/\.(html|htm|php|aspx|jsp)$/i)) {
+        return;
       }
       
       // Handle root path
       if (href === '/') {
-        return; // No need to modify root path
+        link.setAttribute('href', '/index.html');
+        return;
       }
       
-      // Handle trailing slashes
+      // Handle trailing slashes for directory paths
+      let newHref = href;
       if (href.endsWith('/')) {
-        // Convert /path/ to /path/index.html
-        const newHref = href + 'index.html';
+        newHref = href + 'index.html';
         link.setAttribute('href', newHref);
-        console.log(`Fixed link: ${href} → ${newHref}`);
       } else if (!href.includes('.')) {
-        // For paths without extensions and not ending with slash, add /index.html
-        const newHref = href + '/index.html';
+        // For paths without extensions and not ending with slash
+        newHref = href + '/index.html';
         link.setAttribute('href', newHref);
-        console.log(`Fixed link: ${href} → ${newHref}`);
+      }
+    });
+  }
+  
+  // Fix image and script sources too
+  function fixResourcePaths() {
+    // Fix image sources
+    document.querySelectorAll('img[src]').forEach(img => {
+      const src = img.getAttribute('src');
+      if (src && src.includes('/out/')) {
+        img.setAttribute('src', src.replace(/\/out\//g, '/'));
       }
     });
     
-    console.log("All links have been fixed for static hosting");
-  }
-  
-  // Function to check and fix CSS variables
-  function fixCssVariables() {
-    // Define common CSS variables if they're missing
-    const rootStyle = document.documentElement.style;
-    if (!rootStyle.getPropertyValue('--primary')) {
-      rootStyle.setProperty('--primary', '#3498db');
-    }
-    if (!rootStyle.getPropertyValue('--primary-foreground')) {
-      rootStyle.setProperty('--primary-foreground', '#ffffff');
-    }
-    if (!rootStyle.getPropertyValue('--secondary')) {
-      rootStyle.setProperty('--secondary', '#2ecc71');
-    }
-    if (!rootStyle.getPropertyValue('--secondary-light')) {
-      rootStyle.setProperty('--secondary-light', '#4cd787');
-    }
-    console.log("CSS variables checked and fixed if needed");
+    // Fix script sources
+    document.querySelectorAll('script[src]').forEach(script => {
+      const src = script.getAttribute('src');
+      if (src && src.includes('/out/')) {
+        script.setAttribute('src', src.replace(/\/out\//g, '/'));
+      }
+    });
   }
   
   // Initialize after DOM is loaded
   function initialize() {
     fixLinks();
-    fixCssVariables();
+    fixResourcePaths();
+  }
+  
+  // Handle current URL if needed
+  if (window.location.pathname.includes('/out/')) {
+    // Redirect to the corrected path
+    window.location.href = window.location.pathname.replace(/\/out\//g, '/');
   }
   
   // Run immediately if DOM is loaded, otherwise wait for DOMContentLoaded
@@ -112,18 +102,6 @@
     initialize();
   }
   
-  // Also run when page is fully loaded to catch dynamically added links
-  window.addEventListener('load', function() {
-    fixLinks();
-    
-    // Additional fix for Microsoft browsers: ensure all images and resources load correctly
-    if (isMSBrowser) {
-      document.querySelectorAll('img').forEach(img => {
-        const src = img.getAttribute('src');
-        if (src && src.startsWith('/out/')) {
-          img.src = src.replace('/out/', '/');
-        }
-      });
-    }
-  });
+  // Also run when page is fully loaded to catch dynamically added elements
+  window.addEventListener('load', initialize);
 })();

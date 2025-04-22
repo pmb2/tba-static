@@ -37,7 +37,7 @@ jobs:
       - name: Prepare static site for GitHub Pages
         run: |
           # Create a script to fix the static site for GitHub Pages
-          cat > ./fix-static-site.sh << 'EOF'
+          cat > ./prepare-static-site.sh << 'EOF'
           #!/bin/bash
           
           # Prepare the static site for GitHub Pages deployment
@@ -62,13 +62,13 @@ jobs:
             cp "$OUT_DIR/index.html" "$OUT_DIR/404.html"
           fi
           
-          # Fix paths in HTML files
+          # Fix paths in HTML files - remove all references to /out/
           echo "Fixing paths in HTML files"
-          for html_file in $(find "$OUT_DIR" -name "*.html" | grep -v -E "\.git\/|_next\/"); do
-            # Replace ALL /out/ references
+          find "$OUT_DIR" -name "*.html" -type f | grep -v -E "\.git/|_next/" | while read html_file; do
+            # Replace any references to /out/ path with root path
             sed -i 's#/out/#/#g' "$html_file"
-            # Double check with a more aggressive replacement to catch any edge cases
-            sed -i 's#[\"'\''(]\/out\/#$1/#g' "$html_file"
+            sed -i 's#\"/out/#\"/#g' "$html_file"
+            sed -i "s#'/out/#'/#g" "$html_file"
             
             # Insert the path-fixer.js script if not already included
             if ! grep -q "path-fixer.js" "$html_file"; then
@@ -76,19 +76,16 @@ jobs:
               echo "Added path-fixer.js to $html_file"
             fi
             
-            # Insert the form-fixer.js script if not already included
-            if ! grep -q "form-fixer.js" "$html_file"; then
-              # Only add to files with forms
-              if grep -q "<form" "$html_file"; then
-                sed -i 's#</head>#<script src="/form-fixer.js"></script></head>#' "$html_file"
-                echo "Added form-fixer.js to $html_file"
-              fi
+            # Insert the form-fixer.js script for HTML files with forms
+            if grep -q "<form" "$html_file" && ! grep -q "form-fixer.js" "$html_file"; then
+              sed -i 's#</head>#<script src="/form-fixer.js"></script></head>#' "$html_file"
+              echo "Added form-fixer.js to $html_file"
             fi
           done
           
           # Create HTML redirects for directory paths
           echo "Creating directory redirects"
-          for dir in $(find "$OUT_DIR" -type d | grep -v -E "\.git\/|_next\/"); do
+          find "$OUT_DIR" -type d | grep -v -E "\.git/|_next/" | while read dir; do
             # Skip the out directory itself
             if [ "$dir" == "$OUT_DIR" ]; then
               continue
@@ -101,17 +98,15 @@ jobs:
               html_file="$OUT_DIR${rel_path}.html"
               if [ ! -f "$html_file" ]; then
                 mkdir -p "$(dirname "$html_file")"
-                # Create simple HTML file that loads the index.html directly
                 echo "<!DOCTYPE html>" > "$html_file"
                 echo "<html>" >> "$html_file"
                 echo "<head>" >> "$html_file"
                 echo "  <meta charset=\"utf-8\">" >> "$html_file"
                 echo "  <title>${rel_path#/}</title>" >> "$html_file"
-                echo "  <script src=\"/path-fixer.js\"></script>" >> "$html_file"
-                echo "  <script>window.location.href = \"${rel_path}/index.html\";</script>" >> "$html_file"
+                echo "  <meta http-equiv=\"refresh\" content=\"0; url=${rel_path}/index.html\">" >> "$html_file"
                 echo "</head>" >> "$html_file"
                 echo "<body>" >> "$html_file"
-                echo "  <!-- This page intentionally left blank -->" >> "$html_file"
+                echo "  Redirecting to <a href=\"${rel_path}/index.html\">${rel_path}/index.html</a>" >> "$html_file"
                 echo "</body>" >> "$html_file"
                 echo "</html>" >> "$html_file"
                 echo "Created redirect: $html_file -> ${rel_path}/index.html"
@@ -119,12 +114,16 @@ jobs:
             fi
           done
           
+          # Double-check for any remaining /out/ references
+          echo "Double-checking for any remaining /out/ references"
+          grep -r "/out/" "$OUT_DIR" --include="*.html" --include="*.js" --include="*.css" || echo "No /out/ references found"
+          
           echo "Static site preparation complete"
           EOF
           
           # Make the script executable and run it
-          chmod +x ./fix-static-site.sh
-          ./fix-static-site.sh
+          chmod +x ./prepare-static-site.sh
+          ./prepare-static-site.sh
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

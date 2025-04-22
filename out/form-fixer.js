@@ -1,18 +1,10 @@
 /**
- * Form Fixer Script for GitHub Pages Static Sites
- * Redirects form submissions to create GitHub issues for handling by GitHub Actions
+ * Form Fixer Script - Cross-browser compatible version
+ * Submits form data by creating GitHub issues for handling by GitHub Actions
  */
 
 (function() {
-  console.log("Form handler v2 loaded with Microsoft Edge compatibility");
-  
-  // Detect browser
-  const isMSBrowser = /Edge|MSIE|Trident/.test(navigator.userAgent);
-  if (isMSBrowser) {
-    console.log("Microsoft browser detected, applying compatibility fixes");
-  }
-
-  console.log("GitHub Issues Form Handler loaded - v1.0");
+  console.log("Form Fixer loaded - browser compatible version!");
 
   // Helper function to add message containers to forms
   function addMessageContainer(form) {
@@ -142,7 +134,13 @@
     });
 
     // Open a new window to create the issue
-    window.open(`${issueUrl}?${issueParams.toString()}`, '_blank');
+    const issueWindow = window.open(`${issueUrl}?${issueParams.toString()}`, '_blank');
+    
+    // Handle popup blocker
+    if (!issueWindow || issueWindow.closed || typeof issueWindow.closed === 'undefined') {
+      showErrorMessage(form, 'Popup blocked. Please allow popups for this site to submit the form.');
+      return false;
+    }
     
     return true;
   }
