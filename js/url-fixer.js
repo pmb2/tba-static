@@ -92,10 +92,64 @@
     }
   }
   
+  // Fix buttons on specific pages
+  function fixButtons() {
+    // Fix pricing page buttons
+    if (window.location.pathname.includes('/pricing/')) {
+      // Find all pricing buttons
+      setTimeout(function() {
+        document.querySelectorAll('.bg-zinc-900.rounded-2xl button').forEach(button => {
+          if (!button.getAttribute('data-fixed') && 
+              (button.textContent.includes('Get Started') || 
+               button.textContent.includes('Contact Sales'))) {
+            
+            button.setAttribute('data-fixed', 'true');
+            button.addEventListener('click', function(e) {
+              e.preventDefault();
+              // Open contact form if TBAModal is available
+              if (window.TBAModal && window.TBAModal.openContactForm) {
+                window.TBAModal.openContactForm();
+              } else {
+                // Fallback to redirect
+                window.location.href = '/contact/';
+              }
+            });
+          }
+        });
+      }, 500);
+    }
+    
+    // Fix our-work page buttons
+    if (window.location.pathname.includes('/our-work/')) {
+      setTimeout(function() {
+        // Find Start a Project button
+        const projectBtns = document.querySelectorAll('button');
+        projectBtns.forEach(btn => {
+          if (!btn.getAttribute('data-fixed') && 
+              btn.textContent.includes('Start a Project')) {
+            
+            btn.setAttribute('data-fixed', 'true');
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              // Open contact form if TBAModal is available
+              if (window.TBAModal && window.TBAModal.openContactForm) {
+                window.TBAModal.openContactForm();
+              } else {
+                // Fallback to redirect
+                window.location.href = '/contact/';
+              }
+            });
+          }
+        });
+      }, 500);
+    }
+  }
+  
   // Run the fixers when DOM is loaded
   function init() {
     fixLinks();
     fixSources();
+    fixButtons();
   }
   
   // Initialize when DOM is ready

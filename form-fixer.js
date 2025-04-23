@@ -201,31 +201,63 @@
       }
     }
     
-    // Find all "Get Started" or "Start a project" buttons and attach scroll/redirect behavior
-    var actionButtons = document.querySelectorAll('a[href*="#"], button');
+    // Find all action buttons and attach behavior
+    var actionButtons = document.querySelectorAll('button');
     for (var j = 0; j < actionButtons.length; j++) {
       var button = actionButtons[j];
       var buttonText = button.textContent || button.innerText;
       
       if (!button.getAttribute('data-handler-attached') && 
-          (buttonText.includes('Get Started') || buttonText.includes('Start a project'))) {
+          (buttonText.includes('Get Started') || 
+           buttonText.includes('Start a Project') || 
+           buttonText.includes('Contact Sales') ||
+           buttonText.includes('Contact Us'))) {
+        
         button.setAttribute('data-handler-attached', 'true');
         
-        // Attach click handler
+        // For pricing page buttons in specific
+        var isPricingPage = window.location.pathname.includes('/pricing/');
+        var isInPricingCard = false;
+        
+        // Check if button is inside a pricing card
+        var parent = button.parentNode;
+        while (parent && parent !== document.body) {
+          if (parent.classList && parent.classList.contains('bg-zinc-900') && 
+              parent.classList.contains('rounded-2xl')) {
+            isInPricingCard = true;
+            break;
+          }
+          parent = parent.parentNode;
+        }
+        
+        // Attach click handler - use either modal or scroll depending on context
         if (button.addEventListener) {
           button.addEventListener('click', function(e) {
             e.preventDefault();
-            scrollToContactForm();
+            // Use TBAModal if available, otherwise scroll to form
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           });
         } else if (button.attachEvent) {
           button.attachEvent('onclick', function(e) {
             e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            scrollToContactForm();
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           });
         } else {
           button.onclick = function(e) {
             e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            scrollToContactForm();
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           };
         }
       }

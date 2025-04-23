@@ -3,6 +3,27 @@
  * Provides a centered popup modal for forms or other content
  */
 (function() {
+  // Add style for fixed centering
+  const style = document.createElement('style');
+  style.textContent = `
+    #tba-modal-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #tba-modal-content {
+      position: relative;
+      transform: translateY(0);
+      margin: auto;
+    }
+  `;
+  document.head.appendChild(style);
   // Create modal container if it doesn't exist
   function createModal() {
     // Check if modal already exists
@@ -18,7 +39,7 @@
     
     const modalContent = document.createElement('div');
     modalContent.id = 'tba-modal-content';
-    modalContent.className = 'bg-zinc-900 rounded-xl border border-zinc-700 shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto';
+    modalContent.className = 'bg-zinc-900 rounded-xl border border-zinc-700 shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto fixed-center';
     
     const closeButton = document.createElement('button');
     closeButton.id = 'tba-modal-close';
@@ -111,6 +132,20 @@
       // Open the modal with form
       openModal(contentWrapper);
       
+      // Ensure modal is visible and centered
+      const modal = document.getElementById('tba-modal-container');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.style.alignItems = 'center';
+        modal.style.justifyContent = 'center';
+        
+        // Scroll to modal
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+      
       // Set up form submission
       formClone.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -118,7 +153,6 @@
         // Submit form using the form-handler.js logic
         const event = new Event('submit', { bubbles: true, cancelable: true });
         formClone.dispatchEvent(event);
-      });
     } else {
       // If form doesn't exist on the page, redirect to contact page
       window.location.href = '/contact/';
@@ -141,7 +175,8 @@
         // Check if this is a button we should handle
         if (buttonText.includes('Get Started') || 
             buttonText.includes('Contact Sales') || 
-            buttonText.includes('Start a Project')) {
+            buttonText.includes('Start a Project') ||
+            buttonText.includes('Contact Us')) {
           
           // Mark this button as having a handler attached
           button.setAttribute('data-modal-handler-attached', 'true');
@@ -154,6 +189,35 @@
         }
       }
     }
+    
+    // Re-run the initialization after a short delay to catch any dynamically loaded buttons
+    setTimeout(function() {
+      // Find buttons that might have been missed in the initial scan
+      const allButtons = document.querySelectorAll('button:not([data-modal-handler-attached]), a.button:not([data-modal-handler-attached])');
+      
+      for (let i = 0; i < allButtons.length; i++) {
+        const button = allButtons[i];
+        const buttonText = button.textContent && button.textContent.trim();
+        
+        if (buttonText) {
+          // Check for pricing page buttons specifically
+          if (buttonText.includes('Get Started') || 
+              buttonText.includes('Contact Sales') || 
+              buttonText.includes('Start a Project') ||
+              buttonText.includes('Contact Us')) {
+            
+            // Mark as handled
+            button.setAttribute('data-modal-handler-attached', 'true');
+            
+            // Attach click handler
+            button.addEventListener('click', function(e) {
+              e.preventDefault();
+              openContactForm();
+            });
+          }
+        }
+      }
+    }, 1000);
   }
   
   // Export functions to global scope
@@ -163,10 +227,36 @@
     openContactForm: openContactForm
   };
   
+  // Add a page-specific initializer for the pricing page
+  function setupPricingPageButtons() {
+    // Check if we're on the pricing page
+    if (window.location.pathname.includes('/pricing/')) {
+      // Find pricing buttons by their container context
+      const pricingCards = document.querySelectorAll('.bg-zinc-900.rounded-2xl');
+      
+      pricingCards.forEach(card => {
+        const button = card.querySelector('button');
+        if (button && !button.getAttribute('data-modal-handler-attached')) {
+          button.setAttribute('data-modal-handler-attached', 'true');
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            openContactForm();
+          });
+        }
+      });
+    }
+  }
+  
   // Initialize when DOM is ready or when script loads if DOM is already ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() {
+      init();
+      // Run pricing page setup after a short delay
+      setTimeout(setupPricingPageButtons, 500);
+    });
   } else {
     init();
+    // Run pricing page setup after a short delay
+    setTimeout(setupPricingPageButtons, 500);
   }
 })();
