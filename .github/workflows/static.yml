@@ -34,11 +34,22 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
+      # Copy files from /out to root for deployment
+      - name: Run deploy script
+        run: |
+          cp -r out/* .
+          mkdir -p js
+          cp -f out/js/form-handler.js js/ || true
+          cp -f out/form-fixer.js . || true
+          cp -f out/path-fixer.js . || true
+          touch .nojekyll
+          echo "backus.agency" > CNAME
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload directly from the out directory
-          path: './out'
+          # Upload from the root directory
+          path: '.'
       
       - name: Deploy to GitHub Pages
         id: deployment
