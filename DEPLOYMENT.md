@@ -1,60 +1,60 @@
 # Deployment Guide
 
-This document explains how the website is structured and how to deploy it correctly.
+## Overview
 
-## Current Structure
+This static site is designed to be deployed directly to GitHub Pages from the root directory. The deployment workflow has been optimized to eliminate the need for the `/out/` directory by building directly to the root.
 
-The website is now set up to be served directly from the root directory, eliminating the need for the `/out/` route redirection. This means:
+## How Deployment Works
 
-1. The main content is now accessible directly at `https://backus.agency/` instead of `https://backus.agency/out/`
-2. JavaScript files and assets have been moved to their proper locations in the root directory
+1. The site uses Next.js with the `next.config.js` configuration set to output to the root directory instead of `/out/`.
+2. The GitHub Actions workflow in `.github/workflows/static.yml` handles the deployment process.
+3. All assets are served from the root URL (https://backus.agency/) rather than from an `/out/` subdirectory.
 
-## Key Files
+## Key Files for Deployment
 
-- `form-fixer.js` - Handles form submissions by creating GitHub issues
-- `path-fixer.js` - Ensures CSS variables are properly set across all browsers
-- `js/form-handler.js` - Modern form handling implementation
-- `nginx.conf` - Configuration for setting up Nginx to serve the site (if needed)
-- `deploy.sh` - Script to copy files from `/out` to the root directory after building
+- `next.config.js`: Configures Next.js to build to the root directory
+- `.github/workflows/static.yml`: Handles the CI/CD process for GitHub Pages
+- `js/modal.js`: Provides popup functionality for contact forms
+- `js/form-handler.js`: Handles form submissions by creating GitHub issues
+- `form-fixer.js`: Provides cross-browser compatibility for forms
+- `path-fixer.js`: Ensures CSS variables work correctly across browsers
 
-## Deployment Process
+## Manual Deployment (if needed)
 
-1. Build your site as usual (this will generate files in the `/out` directory)
-2. Run the `deploy.sh` script to copy files to the root directory:
-   ```bash
-   chmod +x deploy.sh
-   ./deploy.sh
+If you need to deploy manually (without GitHub Actions):
+
+1. Build the site:
    ```
-3. Commit and push the changes to GitHub. GitHub Pages will serve the site from the root directory.
-
-## Manual Deployment
-
-If the deployment script doesn't work, follow these steps manually:
-
-1. Copy all files from `/out` to the root:
-   ```bash
-   cp -r out/* .
+   npm run build
    ```
 
-2. Ensure the JS files are in the right place:
-   ```bash
-   cp -f out/js/form-handler.js js/
-   cp -f out/form-fixer.js .
-   cp -f out/path-fixer.js .
+2. Ensure all necessary files are in the correct location:
+   ```
+   cp -r js/*.js ./js/
+   cp -f form-fixer.js .
+   cp -f path-fixer.js .
    ```
 
-3. Create GitHub Pages required files:
-   ```bash
+3. Create necessary GitHub Pages files:
+   ```
    touch .nojekyll
    echo "backus.agency" > CNAME
    ```
 
+4. Commit and push your changes to the `main` branch.
+
 ## Important Notes
 
-- All internal links should use absolute paths starting from the root (e.g., `/about/` not `/out/about/`)
-- Always include the CSS variables fix script (`path-fixer.js`) in all HTML files
-- Make sure the GitHub repository metadata is included in the main HTML files:
-  ```html
-  <meta name="github-repo-owner" content="TheBackusAgency"/>
-  <meta name="github-repo-name" content="tba-static"/>
-  ```
+- The site is configured to use the domain `backus.agency`
+- All scripts are now loaded from the root paths (e.g., `/js/modal.js` instead of `/out/js/modal.js`)
+- Forms are submitted by creating GitHub issues in the repository
+
+## Troubleshooting
+
+If you encounter issues with the deployment:
+
+1. Check that all script paths are absolute and start from the root (e.g., `/js/modal.js` not `js/modal.js`)
+2. Verify that `next.config.js` is properly configured
+3. Ensure the GitHub workflow has proper permissions to deploy to Pages
+4. Check the GitHub Actions logs for any build or deployment errors
+EOF < /dev/null

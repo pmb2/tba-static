@@ -1,57 +1,65 @@
-# The Backus Agency Website
+# The Backus Agency - Static Website
 
-Static site with form handling via GitHub Issues and SQLite database.
+This is the static website for The Backus Agency, built with Next.js and deployed to GitHub Pages.
 
-## Setup
+## Important Files
 
-This site is set up to be deployed on GitHub Pages and uses GitHub Issues for form handling. When a form is submitted, it creates a GitHub issue that triggers a GitHub Actions workflow, which adds the submission to a SQLite database in the repository.
+- **Website Content**: HTML, CSS, and JavaScript for the website
+- **Form Handling**: JavaScript for contact form and issue creation
+- **Deployment**: GitHub Actions workflow for deployment to GitHub Pages
 
-### Repository Structure
+## Directory Structure
 
-- `db/` - Contains the SQLite database and schema
-- `out/` - The static site content
-- `.github/workflows/` - GitHub Actions workflows:
-  - `static.yml` - Deploys the static site to GitHub Pages
-  - `form-handler.yml` - Processes form submissions
+The website is transitioning from a structure where files are built into `/out/` to directly building to the root directory. See [TRANSITION.md](TRANSITION.md) for details.
 
-### Form Handling Setup
+## Key JavaScript Files
 
-Forms are set up to submit to GitHub Issues, which are then processed by GitHub Actions to store the data in a SQLite database. The form handling is done using JavaScript that intercepts the form submissions.
+- `js/modal.js`: Handles popup modals for contact forms
+- `js/form-handler.js`: Processes form submissions
+- `form-fixer.js`: Ensures forms work across browsers
+- `path-fixer.js`: Fixes CSS variables for compatibility
+- `js/url-fixer.js`: Ensures URLs work during transition
 
-Requirements:
-1. Add the repository metadata in the HTML:
-   ```html
-   <meta name="github-repo-owner" content="TheBackusAgency">
-   <meta name="github-repo-name" content="tba-static">
-   ```
+## Deployment
 
-2. Include the form-handler.js script:
-   ```html
-   <script src="/js/form-handler.js"></script>
-   ```
+This site is deployed using GitHub Pages. See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed information on how deployment works.
 
-3. Add the `data-form-type` attribute to your forms:
-   ```html
-   <form data-form-type="contact">
-     <!-- form fields -->
-   </form>
-   ```
+## Quick Start
 
-### Database Schema
+1. Clone this repository
+2. Make your changes
+3. Run `./deploy.sh` to prepare files for deployment
+4. Commit and push your changes
+5. GitHub Actions will automatically deploy the site
 
-The database has two tables:
-- `contact_form` - For contact form submissions
-- `newsletter_form` - For newsletter subscriptions
+## Main Website Sections
 
-## Form Submission Process
+- Home Page
+- About
+- Our Work
+- Pricing
+- Blog
+- Contact
 
-1. User fills out a form on the website
-2. JavaScript intercepts the form submission
-3. A new GitHub issue is created with the form data
-4. GitHub Actions workflow is triggered by the new issue
-5. Workflow processes the form data and stores it in the SQLite database
-6. The issue is closed automatically
+## Forms
 
-## License
+The website uses GitHub Issues for form submissions. When users submit a contact form, a GitHub issue is created in this repository with the form data.
 
-© 2025 The Backus Agency. All rights reserved.
+## Design
+
+The website uses a modern dark theme with accent colors defined as CSS variables for consistency.
+
+## Building Locally
+
+If you have Next.js installed, you can build the site locally:
+
+```bash
+npm run build
+```
+
+Otherwise, you can simply edit the HTML, CSS, and JavaScript files directly.
+
+## Support
+
+For support or questions, please create an issue in this repository.
+EOL < /dev/null

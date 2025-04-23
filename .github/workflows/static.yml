@@ -31,17 +31,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      
       - name: Setup Pages
         uses: actions/configure-pages@v5
       
-      # Copy files from /out to root for deployment
-      - name: Run deploy script
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      # Prepare build environment
+      - name: Install dependencies
         run: |
-          cp -r out/* .
+          # Check if package.json exists and run npm install if it does
+          if [ -f "package.json" ]; then
+            npm ci
+          fi
+      
+      # Build the site (if needed)
+      - name: Build site
+        run: |
+          # Run build command if package.json exists with a build script
+          if [ -f "package.json" ] && grep -q '"build"' package.json; then
+            npm run build
+          fi
+      
+      # Create essential files if they don't exist
+      - name: Setup essential files
+        run: |
+          # Ensure all necessary directories exist
           mkdir -p js
-          cp -f out/js/form-handler.js js/ || true
-          cp -f out/form-fixer.js . || true
-          cp -f out/path-fixer.js . || true
+          
+          # Create necessary JavaScript files if they don't exist
+          if [ ! -f "js/modal.js" ]; then
+            cp -f js/modal.js js/ 2>/dev/null || echo "// Modal script" > js/modal.js
+          fi
+          
+          if [ ! -f "js/form-handler.js" ]; then
+            cp -f js/form-handler.js js/ 2>/dev/null || echo "// Form handler script" > js/form-handler.js
+          fi
+          
+          if [ ! -f "form-fixer.js" ]; then
+            cp -f form-fixer.js . 2>/dev/null || echo "// Form fixer script" > form-fixer.js
+          fi
+          
+          if [ ! -f "path-fixer.js" ]; then
+            cp -f path-fixer.js . 2>/dev/null || echo "// Path fixer script" > path-fixer.js
+          fi
+          
+          # Ensure GitHub Pages uses the right domain and doesn't use Jekyll
           touch .nojekyll
           echo "backus.agency" > CNAME
       
