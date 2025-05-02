@@ -1,6 +1,6 @@
 /**
- * Form Handler for GitHub Pages
- * Submits form data by creating GitHub issues that trigger workflow actions
+ * Form Handler for The Backus Agency
+ * Submits form data to n8n webhook endpoint
  */
 
 // Initialize all forms when DOM is loaded
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Set up a form with the GitHub issue-based submission handler
+ * Set up a form with the webhook submission handler
  * @param {HTMLFormElement} form - The form element to set up
  */
 function setupForm(form) {
@@ -35,11 +35,12 @@ function setupForm(form) {
       formData[key] = value;
     });
     
-    // Add timestamp
+    // Add timestamp and form type
     formData.submitted_at = new Date().toISOString();
+    formData.form_type = formType;
     
     try {
-      await submitFormAsGitHubIssue(formType, formData);
+      await submitFormToWebhook(formData);
       showSuccessMessage(form);
       form.reset();
     } catch (error) {
@@ -81,44 +82,30 @@ function validateForm(form) {
 }
 
 /**
- * Submit form data by creating a GitHub issue
- * @param {string} formType - Type of form (contact, newsletter, etc.)
+ * Submit form data to n8n webhook
  * @param {Object} formData - Form data to submit
  */
-async function submitFormAsGitHubIssue(formType, formData) {
-  // Get repository information from meta tags
-  const repoOwner = document.querySelector('meta[name="github-repo-owner"]')?.content;
-  const repoName = document.querySelector('meta[name="github-repo-name"]')?.content;
+async function submitFormToWebhook(formData) {
+  const webhookUrl = 'https://n8n.backus.agency/webhook/form_filled';
   
-  if (!repoOwner || !repoName) {
-    throw new Error('Repository information is missing. Add meta tags for github-repo-owner and github-repo-name.');
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    throw new Error('Failed to submit form. Please try again later.');
   }
-  
-  // Format the data as YAML for the issue body
-  const formDataYaml = Object.entries(formData)
-    .map(([key, value]) => `${key}: ${typeof value === 'string' ? `"${value}"` : value}`)
-    .join('\n');
-  
-  // Create GitHub issue via endpoint
-  const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new`;
-  
-  // Format issue data
-  const issueData = {
-    title: `Form Submission: ${formType} Form`,
-    body: formDataYaml,
-    labels: ['form-submission', formType]
-  };
-
-  // Open a new window to create the issue
-  // We're using this approach because GitHub's API requires authentication
-  // This will ask the user to login to GitHub and create the issue
-  const issueParams = new URLSearchParams({
-    title: issueData.title,
-    body: issueData.body,
-    labels: issueData.labels.join(',')
-  });
-
-  window.open(`${issueUrl}?${issueParams.toString()}`, '_blank');
 }
 
 /**
