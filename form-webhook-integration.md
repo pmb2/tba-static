@@ -25,7 +25,7 @@ The `js/form-handler.js` file has been modified to:
 1. **Contact Form**: Located on the contact page
    - Form ID: `contact-form`
    - Form Type: `contact`
-   - Fields: name, email, phone, subject, message
+   - Fields: firstName, lastName, email, phone, subject, message
 
 2. **Newsletter Form**: Located in the footer of all pages
    - Form Type: `newsletter`
@@ -37,7 +37,8 @@ The `js/form-handler.js` file has been modified to:
 
 ```json
 {
-  "name": "John Doe",
+  "firstName": "John",
+  "lastName": "Doe",
   "email": "john@example.com",
   "phone": "+1 (555) 123-4567",
   "subject": "general",
@@ -110,7 +111,8 @@ Create a table named `form_submissions` with the following fields:
 | Field Name | Type | Description |
 |------------|------|-------------|
 | id | Auto-increment | Primary key |
-| name | Text | Name of the person (contact form) |
+| firstName | Text | First name of the person (contact form) |
+| lastName | Text | Last name of the person (contact form) |
 | email | Text | Email address |
 | phone | Text | Phone number (contact form) |
 | subject | Text | Subject (contact form) |
