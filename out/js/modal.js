@@ -150,9 +150,102 @@
       formClone.addEventListener('submit', function(evt) {
         evt.preventDefault();
         
-        // Submit form using the form-handler.js logic
-        const formEvent = new Event('submit', { bubbles: true, cancelable: true });
-        formClone.dispatchEvent(formEvent);
+        // Make sure the form has the data-form-type attribute
+        if (!formClone.getAttribute('data-form-type')) {
+          formClone.setAttribute('data-form-type', 'contact');
+        }
+        
+        // Validate the form
+        let isValid = true;
+        
+        // Check each required field
+        formClone.querySelectorAll('[required]').forEach(field => {
+          if (!field.value.trim()) {
+            field.classList.add('error');
+            isValid = false;
+          } else {
+            field.classList.remove('error');
+          }
+        });
+        
+        // Check email format if there is an email field
+        const emailField = formClone.querySelector('input[type="email"]');
+        if (emailField && emailField.value) {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(emailField.value)) {
+            emailField.classList.add('error');
+            isValid = false;
+          }
+        }
+        
+        if (!isValid) {
+          return;
+        }
+        
+        // Collect form data
+        const formData = {};
+        new FormData(formClone).forEach((value, key) => {
+          formData[key] = value;
+        });
+        
+        // Add timestamp and form type
+        formData.submitted_at = new Date().toISOString();
+        formData.form_type = 'contact';
+        
+        // Submit to n8n webhook
+        const webhookUrl = 'https://n8n.backus.agency/webhook/form_filled';
+        
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then(() => {
+          // Show success message
+          let messageContainer = formClone.querySelector('.form-message');
+          
+          if (!messageContainer) {
+            // Create a message container if it doesn't exist
+            messageContainer = document.createElement('div');
+            messageContainer.className = 'form-message';
+            formClone.appendChild(messageContainer);
+          }
+          
+          // Show success message
+          messageContainer.innerHTML = '<p class="success">Thank you for your submission! We\'ll be in touch soon.</p>';
+          messageContainer.style.display = 'block';
+          
+          // Reset form
+          formClone.reset();
+          
+          // Close modal after success (optional)
+          setTimeout(() => {
+            closeModal();
+          }, 3000);
+        })
+        .catch(error => {
+          // Show error message
+          let messageContainer = formClone.querySelector('.form-message');
+          
+          if (!messageContainer) {
+            // Create a message container if it doesn't exist
+            messageContainer = document.createElement('div');
+            messageContainer.className = 'form-message';
+            formClone.appendChild(messageContainer);
+          }
+          
+          // Show error message
+          messageContainer.innerHTML = `<p class="error">There was a problem submitting the form: ${error.message}</p>`;
+          messageContainer.style.display = 'block';
+        });
       });
     } else {
       // If form doesn't exist on the page, redirect to contact page
