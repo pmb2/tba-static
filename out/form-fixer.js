@@ -1,6 +1,6 @@
 /**
  * Form Handler - Cross-browser Compatible
- * This script handles form submissions and creates GitHub Issues
+ * This script handles form submissions to n8n webhook
  */
 (function() {
   // Helper function for older browsers
@@ -48,80 +48,67 @@
       formData = getFormData(form);
     }
     
-    // Format issue data in YAML format for better parsing by the GitHub workflow
-    var issueBody = '';
-    for (var key in formData) {
-      if (formData.hasOwnProperty(key)) {
-        // Ensure values with special characters are properly quoted
-        issueBody += key + ': "' + formData[key].replace(/"/g, '\\"') + '"\n';
-      }
-    }
+    // Add timestamp and form type
+    formData.submitted_at = new Date().toISOString();
+    formData.form_type = formType;
     
-    // Create proper form data for backend
-    var apiEndpoint = 'https://api.github.com/repos/TheBackusAgency/tba-static/issues';
-    
-    // Determine the title based on form type
-    var issueTitle = '';
-    if (formType === 'contact') {
-      issueTitle = 'Form Submission: Contact Form';
-    } else if (formType === 'newsletter') {
-      issueTitle = 'Form Submission: Newsletter Form';
-    } else {
-      issueTitle = 'Form Submission: ' + formType + ' Form';
-    }
-    
-    // Fallback to the GitHub issues page if fetch doesn't work
-    var fallbackUrl = 'https://github.com/TheBackusAgency/tba-static/issues/new?' +
-      'title=' + encodeURIComponent(issueTitle) +
-      '&body=' + encodeURIComponent(issueBody) +
-      '&labels=' + encodeURIComponent('form-submission,' + formType);
-    
-    // Try to create the issue via GitHub API if possible
+    // Submit to n8n webhook
+    var webhookUrl = 'https://n8n.backus.agency/webhook/form_filled';
     var messageContainer = form.querySelector('.form-message');
     
+    // Show loading state
+    if (messageContainer) {
+      messageContainer.style.display = 'block';
+      messageContainer.innerHTML = '<div style="padding: 12px; background-color: rgba(52, 152, 219, 0.2); border: 1px solid rgba(52, 152, 219, 0.5); border-radius: 6px; color: white; margin-top: 16px;">Submitting your form...</div>';
+    }
+    
     if (window.fetch) {
-      // Show loading state
-      if (messageContainer) {
-        messageContainer.style.display = 'block';
-        messageContainer.innerHTML = '<div style="padding: 12px; background-color: rgba(52, 152, 219, 0.2); border: 1px solid rgba(52, 152, 219, 0.5); border-radius: 6px; color: white; margin-top: 16px;">Submitting your form...</div>';
-      }
-      
-      // First, try a direct API approach (this will likely fail due to CORS, but worth trying)
       try {
-        fetch(apiEndpoint, {
+        fetch(webhookUrl, {
           method: 'POST',
           headers: {
-            'Accept': 'application/vnd.github.v3+json'
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            title: issueTitle,
-            body: issueBody,
-            labels: ['form-submission', formType]
-          })
+          body: JSON.stringify(formData),
         })
         .then(function(response) {
           if (response.ok) {
-            showSuccessMessage(form, messageContainer);
+            return response.json();
           } else {
-            // If API call fails, redirect to the GitHub issues page
-            redirectToGitHub(fallbackUrl);
+            throw new Error('Server responded with ' + response.status + ': ' + response.statusText);
           }
         })
-        .catch(function() {
-          // If fetch fails, redirect to the GitHub issues page
-          redirectToGitHub(fallbackUrl); 
+        .then(function() {
+          showSuccessMessage(form, messageContainer);
+          form.reset();
+        })
+        .catch(function(error) {
+          showErrorMessage(form, messageContainer, error.message);
         });
       } catch(e) {
-        // If an error occurs, redirect to the GitHub issues page
-        redirectToGitHub(fallbackUrl);
+        showErrorMessage(form, messageContainer, e.message);
       }
     } else {
-      // For older browsers without fetch, directly redirect to GitHub
-      redirectToGitHub(fallbackUrl);
+      // For older browsers without fetch, use XMLHttpRequest
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', webhookUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          showSuccessMessage(form, messageContainer);
+          form.reset();
+        } else {
+          showErrorMessage(form, messageContainer, 'Server responded with ' + xhr.status + ': ' + xhr.statusText);
+        }
+      };
+      
+      xhr.onerror = function() {
+        showErrorMessage(form, messageContainer, 'Failed to submit form. Please try again later.');
+      };
+      
+      xhr.send(JSON.stringify(formData));
     }
-    
-    // Reset form immediately for better UX
-    form.reset();
   }
   
   function showSuccessMessage(form, messageContainer) {
@@ -136,26 +123,19 @@
           messageContainer.style.display = 'none';
         }, 5000);
       }
-      
-      // Also show an alert for immediate feedback
-      window.alert('Form submitted successfully!');
     } catch (e) {
       console.log('Error showing success message:', e);
     }
   }
   
-  function redirectToGitHub(url) {
+  function showErrorMessage(form, messageContainer, errorMessage) {
     try {
-      var newWindow = window.open(url, '_blank');
-      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-        // Popup was blocked, fallback to current window with confirmation
-        if (window.confirm('Your form will be submitted via GitHub. Continue?')) {
-          window.location.href = url;
-        }
+      if (messageContainer) {
+        messageContainer.style.display = 'block';
+        messageContainer.innerHTML = '<div style="padding: 12px; background-color: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5); border-radius: 6px; color: white; margin-top: 16px;">There was a problem submitting the form: ' + errorMessage + '</div>';
       }
-    } catch(e) {
-      // Last resort: just try to navigate
-      window.location.href = url;
+    } catch (e) {
+      console.log('Error showing error message:', e);
     }
   }
   
@@ -201,31 +181,63 @@
       }
     }
     
-    // Find all "Get Started" or "Start a project" buttons and attach scroll/redirect behavior
-    var actionButtons = document.querySelectorAll('a[href*="#"], button');
+    // Find all action buttons and attach behavior
+    var actionButtons = document.querySelectorAll('button');
     for (var j = 0; j < actionButtons.length; j++) {
       var button = actionButtons[j];
       var buttonText = button.textContent || button.innerText;
       
       if (!button.getAttribute('data-handler-attached') && 
-          (buttonText.includes('Get Started') || buttonText.includes('Start a project'))) {
+          (buttonText.includes('Get Started') || 
+           buttonText.includes('Start a Project') || 
+           buttonText.includes('Contact Sales') ||
+           buttonText.includes('Contact Us'))) {
+        
         button.setAttribute('data-handler-attached', 'true');
         
-        // Attach click handler
+        // For pricing page buttons in specific
+        var isPricingPage = window.location.pathname.includes('/pricing/');
+        var isInPricingCard = false;
+        
+        // Check if button is inside a pricing card
+        var parent = button.parentNode;
+        while (parent && parent !== document.body) {
+          if (parent.classList && parent.classList.contains('bg-zinc-900') && 
+              parent.classList.contains('rounded-2xl')) {
+            isInPricingCard = true;
+            break;
+          }
+          parent = parent.parentNode;
+        }
+        
+        // Attach click handler - use either modal or scroll depending on context
         if (button.addEventListener) {
           button.addEventListener('click', function(e) {
             e.preventDefault();
-            scrollToContactForm();
+            // Use TBAModal if available, otherwise scroll to form
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           });
         } else if (button.attachEvent) {
           button.attachEvent('onclick', function(e) {
             e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            scrollToContactForm();
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           });
         } else {
           button.onclick = function(e) {
             e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            scrollToContactForm();
+            if (window.TBAModal && window.TBAModal.openContactForm) {
+              window.TBAModal.openContactForm();
+            } else {
+              scrollToContactForm();
+            }
           };
         }
       }
