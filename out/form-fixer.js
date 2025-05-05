@@ -21,9 +21,11 @@
   // Function to handle form submission
   function handleFormSubmit(event) {
     event.preventDefault();
+    console.log('Form submission intercepted');
     
     var form = event.target;
     var formType = form.getAttribute('data-form-type') || 'contact';
+    console.log('Form type detected:', formType);
     
     // Get form data using the most compatible approach
     var formData = {};
@@ -52,8 +54,12 @@
     formData.submitted_at = new Date().toISOString();
     formData.form_type = formType;
     
+    console.log('Form data collected:', formData);
+    
     // Submit to n8n webhook
     var webhookUrl = 'https://n8n.backus.agency/webhook/form_filled';
+    console.log('Submitting to webhook:', webhookUrl);
+    
     var messageContainer = form.querySelector('.form-message');
     
     // Show loading state
@@ -72,20 +78,24 @@
           body: JSON.stringify(formData),
         })
         .then(function(response) {
+          console.log('Webhook response:', response);
           if (response.ok) {
             return response.json();
           } else {
             throw new Error('Server responded with ' + response.status + ': ' + response.statusText);
           }
         })
-        .then(function() {
+        .then(function(data) {
+          console.log('Webhook success:', data);
           showSuccessMessage(form, messageContainer);
           form.reset();
         })
         .catch(function(error) {
+          console.error('Webhook error:', error);
           showErrorMessage(form, messageContainer, error.message);
         });
       } catch(e) {
+        console.error('Fetch error:', e);
         showErrorMessage(form, messageContainer, e.message);
       }
     } else {
@@ -96,14 +106,17 @@
       
       xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
+          console.log('XHR success:', xhr.responseText);
           showSuccessMessage(form, messageContainer);
           form.reset();
         } else {
+          console.error('XHR error:', xhr.status, xhr.statusText);
           showErrorMessage(form, messageContainer, 'Server responded with ' + xhr.status + ': ' + xhr.statusText);
         }
       };
       
       xhr.onerror = function() {
+        console.error('XHR network error');
         showErrorMessage(form, messageContainer, 'Failed to submit form. Please try again later.');
       };
       
@@ -152,32 +165,63 @@
   
   // Attach form submission handlers
   function initializeForms() {
+    console.log('Initializing form handlers');
+    
+    // Override any existing form handlers first
+    window.GOOGLE_FORMS = null;
+    
     // Get all forms
     var forms = document.querySelectorAll('form');
+    console.log('Found forms:', forms.length);
     
     // Attach handlers to each form
     for (var i = 0; i < forms.length; i++) {
       var form = forms[i];
+      var formId = form.id || 'form-' + i;
+      console.log('Processing form:', formId);
+      
+      // Force remove any existing action attribute
+      if (form.hasAttribute('action')) {
+        console.log('Removing action attribute from form:', formId);
+        form.removeAttribute('action');
+      }
+      
+      // Force remove any existing target attribute
+      if (form.hasAttribute('target')) {
+        console.log('Removing target attribute from form:', formId);
+        form.removeAttribute('target');
+      }
       
       // Check if handler is already attached
       if (!form.getAttribute('data-handler-attached')) {
         // Add an id for anchor links
         var formType = form.getAttribute('data-form-type') || 'contact';
         form.id = formType + '-form';
+        console.log('Setting up form:', formType, form.id);
         
         // Mark this form as having a handler attached
         form.setAttribute('data-handler-attached', 'true');
         
+        // Clean out any event listeners
+        var newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        form = newForm;
+        
         // Attach submit event
         if (form.addEventListener) {
           form.addEventListener('submit', handleFormSubmit);
+          console.log('Added submit event listener to form:', form.id);
         } else if (form.attachEvent) {
           // For old IE support
           form.attachEvent('onsubmit', handleFormSubmit);
+          console.log('Added IE submit event to form:', form.id);
         } else {
           // Fallback
           form.onsubmit = handleFormSubmit;
+          console.log('Added onsubmit property to form:', form.id);
         }
+      } else {
+        console.log('Form already has handler attached:', formId);
       }
     }
     
@@ -257,9 +301,47 @@
     }
   }
   
+  // Reinitialize all forms to ensure proper handling
+  function reinitializeForms() {
+    console.log('Reinitializing all forms');
+    
+    // Reset all form handlers
+    var forms = document.querySelectorAll('form');
+    for (var i = 0; i < forms.length; i++) {
+      forms[i].removeAttribute('data-handler-attached');
+    }
+    
+    // Reinitialize
+    initializeForms();
+  }
+  
   // Initialize when DOM is ready
   function domReady() {
     initializeForms();
+    
+    // Register for dynamic content changes
+    if (window.MutationObserver) {
+      var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+            // Check if any of the added nodes contain forms
+            for (var i = 0; i < mutation.addedNodes.length; i++) {
+              var node = mutation.addedNodes[i];
+              if (node.querySelectorAll) {
+                var forms = node.querySelectorAll('form');
+                if (forms.length > 0) {
+                  console.log('Dynamic form detected, reinitializing handlers');
+                  setTimeout(reinitializeForms, 100);
+                  break;
+                }
+              }
+            }
+          }
+        });
+      });
+      
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
   }
   
   // Handle various browser loading scenarios
