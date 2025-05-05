@@ -125,6 +125,40 @@
       title.className = 'text-2xl font-bold mb-6 text-center';
       title.textContent = 'Contact Us';
       
+      // Add budget dropdown if it doesn't exist
+      const subjectField = formClone.querySelector('#subject');
+      if (subjectField) {
+        // Ensure the subject field is visible and working
+        subjectField.style.display = 'block';
+        subjectField.style.visibility = 'visible';
+        subjectField.style.opacity = '1';
+        subjectField.style.appearance = 'menulist';
+      }
+      
+      // Add budget field if it doesn't exist
+      if (!formClone.querySelector('#budget')) {
+        // Create budget field
+        const budgetContainer = document.createElement('div');
+        budgetContainer.className = 'space-y-2';
+        budgetContainer.innerHTML = `
+          <label for="budget" class="text-sm font-medium text-zinc-300">Budget <span class="text-red-500">*</span></label>
+          <select name="budget" id="budget" class="flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-zinc-800 border-zinc-700" required>
+            <option value="">Select a budget</option>
+            <option value="$5k-$10k">$5k-$10k</option>
+            <option value="$10k-$25k">$10k-$25k</option>
+            <option value="$25k-$50k">$25k-$50k</option>
+            <option value="$50k-$100k">$50k-$100k</option>
+            <option value="$100k+">$100k+</option>
+          </select>
+        `;
+        
+        // Find where to insert budget field (after phone field)
+        const phoneContainer = formClone.querySelector('#phone').parentNode.parentNode;
+        if (phoneContainer) {
+          phoneContainer.appendChild(budgetContainer);
+        }
+      }
+      
       // Add contact form
       contentWrapper.appendChild(title);
       contentWrapper.appendChild(formClone);
