@@ -415,6 +415,13 @@
       const formData = {};
       const formElements = this.elements;
       
+      // Make sure we capture all form fields, especially subject dropdown
+      const subjectField = contactForm.querySelector('select#subject');
+      if (subjectField && subjectField.selectedIndex >= 0) {
+        formData.subject = subjectField.options[subjectField.selectedIndex].value;
+        console.log(`[NATIVE SELECT] Subject field value: ${formData.subject}`);
+      }
+      
       for (let i = 0; i < formElements.length; i++) {
         const element = formElements[i];
         if (element.name && element.tagName !== 'BUTTON') {
@@ -427,6 +434,12 @@
             formData[element.name] = element.value;
           }
         }
+      }
+      
+      // Double check critical fields
+      if (!formData.subject && subjectField) {
+        formData.subject = subjectField.value;
+        console.log(`[NATIVE SELECT] Manually set subject: ${formData.subject}`);
       }
       
       // Add metadata
