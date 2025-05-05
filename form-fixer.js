@@ -72,6 +72,38 @@
     formData.submitted_at = new Date().toISOString();
     formData.form_type = formType;
     
+    // Get the subject from global storage or data attribute if present and not already in formData
+    if (!formData.subject || formData.subject === '') {
+      // Check if there's a value in dropdown-event-handlers.js global storage
+      if (window.latestSubjectValue) {
+        formData.subject = window.latestSubjectValue;
+        console.log('Added subject from global storage:', window.latestSubjectValue);
+      }
+      
+      // Check form data attributes
+      var dataSubject = form.getAttribute('data-subject-value');
+      if (dataSubject && (!formData.subject || formData.subject === '')) {
+        formData.subject = dataSubject;
+        console.log('Added subject from data attribute:', dataSubject);
+      }
+      
+      // If we have a window.DropdownEvents helper, use it
+      if (window.DropdownEvents && window.DropdownEvents.getLatestSubjectValue) {
+        var helperSubject = window.DropdownEvents.getLatestSubjectValue();
+        if (helperSubject && (!formData.subject || formData.subject === '')) {
+          formData.subject = helperSubject;
+          console.log('Added subject from DropdownEvents helper:', helperSubject);
+        }
+      }
+      
+      // Direct check from select element as last resort
+      var subjectField = form.querySelector('select#subject, select[name="subject"]');
+      if (subjectField && subjectField.selectedIndex >= 0 && (!formData.subject || formData.subject === '')) {
+        formData.subject = subjectField.options[subjectField.selectedIndex].value;
+        console.log('Added subject directly from select element:', formData.subject);
+      }
+    }
+    
     console.log('Form data collected:', formData);
     
     // Submit to n8n webhook
@@ -86,101 +118,77 @@
       messageContainer.innerHTML = '<div style="padding: 12px; background-color: rgba(52, 152, 219, 0.2); border: 1px solid rgba(52, 152, 219, 0.5); border-radius: 6px; color: white; margin-top: 16px;">Submitting your form...</div>';
     }
     
-    // Show success immediately for better UX
-    showSuccessMessage(form, messageContainer);
+    // Try all three methods in parallel for maximum reliability
     
-    // Use no-cors mode to bypass CORS restrictions
+    // 1. First method: Standard XHR POST
+    try {
+      var xhr = new XMLHttpRequest();
+      console.log('XHRPOST');
+      xhr.open('POST', webhookUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify(formData));
+      console.log('XHR POST sent');
+    } catch(e) {
+      console.error('XHR POST error:', e);
+    }
+    
+    // 2. Second method: Fetch with no-cors mode
     if (window.fetch) {
       try {
-        // Use no-cors mode - note that we can't read the response, but the data will still be sent
         fetch(webhookUrl, {
           method: 'POST',
-          mode: 'no-cors', // Critical - this bypasses CORS restrictions
+          mode: 'no-cors',
           cache: 'no-cache',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(formData)
-        })
-        .then(function() {
-          console.log('Form data sent with no-cors mode');
-          form.reset();
-        })
-        .catch(function(error) {
-          console.error('Fetch error, but form was shown as successful:', error);
         });
+        console.log('Fetch no-cors sent');
       } catch(e) {
-        console.error('Fetch exception, but form was shown as successful:', e);
+        console.error('Fetch error:', e);
       }
+    }
+    
+    // 3. Third method: Hidden form with target=_blank
+    try {
+      var hiddenForm = document.createElement('form');
+      hiddenForm.method = 'POST';
+      hiddenForm.action = webhookUrl;
+      hiddenForm.target = '_blank';
+      hiddenForm.style.display = 'none';
       
-      // Also create a dynamic image request as a backup method (JSONP-like approach)
-      try {
-        var paramString = Object.keys(formData).map(function(key) {
-          return encodeURIComponent(key) + '=' + encodeURIComponent(formData[key]);
-        }).join('&');
-        
-        var img = new Image();
-        img.style.display = 'none';
-        img.onload = function() { console.log('Image beacon success'); };
-        img.onerror = function() { console.log('Image beacon completed'); };
-        img.src = webhookUrl + '?' + paramString;
-        document.body.appendChild(img);
-        setTimeout(function() {
-          if (document.body.contains(img)) {
-            document.body.removeChild(img);
-          }
-        }, 10000);
-      } catch(e) {
-        console.error('Image beacon error:', e);
-      }
-    } else {
-      // For older browsers without fetch, use XMLHttpRequest with CORS workarounds
-      try {
-        // First try a POST request
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', webhookUrl, true);
-        
-        // Set mode to avoid preflight if possible
-        xhr.setRequestHeader('Content-Type', 'text/plain');
-        
-        xhr.onload = function() {
-          console.log('XHR completed with status:', xhr.status);
-          form.reset();
-        };
-        
-        xhr.onerror = function() {
-          console.log('XHR error, falling back to GET');
-          // Fall back to GET request with parameters
-          submitGetRequest();
-        };
-        
-        xhr.send(JSON.stringify(formData));
-      } catch(e) {
-        console.error('XHR exception:', e);
-        // Try GET method as fallback
-        submitGetRequest();
-      }
+      // Add form data as hidden inputs
+      var jsonInput = document.createElement('input');
+      jsonInput.type = 'hidden';
+      jsonInput.name = 'data';
+      jsonInput.value = JSON.stringify(formData);
+      hiddenForm.appendChild(jsonInput);
+      
+      // Append to body, submit, then remove
+      document.body.appendChild(hiddenForm);
+      setTimeout(function() {
+        try {
+          hiddenForm.submit();
+          console.log('Hidden form submitted');
+          setTimeout(function() {
+            document.body.removeChild(hiddenForm);
+          }, 1000);
+        } catch(e) {
+          console.error('Hidden form submit error:', e);
+        }
+      }, 10);
+    } catch(e) {
+      console.error('Hidden form error:', e);
     }
     
-    // Helper function for GET fallback
-    function submitGetRequest() {
-      try {
-        var paramString = Object.keys(formData).map(function(key) {
-          return encodeURIComponent(key) + '=' + encodeURIComponent(formData[key]);
-        }).join('&');
-        
-        var getXhr = new XMLHttpRequest();
-        getXhr.open('GET', webhookUrl + '?' + paramString, true);
-        getXhr.send();
-        
-        form.reset();
-      } catch(e) {
-        console.error('GET fallback error:', e);
-      }
-    }
+    // Always show success regardless of actual results (since we can't detect CORS errors properly)
+    setTimeout(function() {
+      showSuccessMessage(form, messageContainer);
+      form.reset();
+    }, 1000);
     
-    // Return true to indicate successful handling
-    return true;
+    return false; // Prevent default form submission
   }
   
   function showSuccessMessage(form, messageContainer) {

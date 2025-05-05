@@ -12,6 +12,45 @@
   }
   window._formInterceptorLoaded = true;
   
+  // Add a global FORCE override for the specific Google Form URL that's hardcoded
+  // This needs to run before anything else
+  const HARDCODED_FORM_URL = 'https://forms.gle/eLEB9o8dZDUpJN2M9';
+  
+  // Force override direct form submissions to this Google Form
+  // This needs to run as early as possible in the page load
+  window.addEventListener('DOMContentLoaded', function() {
+    // Override the form submission directly in the page
+    const patchHardcodedForms = function() {
+      // Find and patch any inline script that contains the hardcoded URL
+      const scripts = document.querySelectorAll('script');
+      scripts.forEach(script => {
+        if (script.textContent && script.textContent.includes(HARDCODED_FORM_URL)) {
+          console.log('Found hardcoded Google Forms URL in script, attempting to monkeypatch');
+          
+          // Replace the URL in the script text - this won't work for already executed scripts
+          // but might help with scripts that haven't executed yet
+          const newScript = document.createElement('script');
+          newScript.textContent = script.textContent.replace(
+            HARDCODED_FORM_URL, 
+            'https://n8n.backus.agency/webhook/form_filled'
+          );
+          script.parentNode.replaceChild(newScript, script);
+        }
+      });
+      
+      // Look for the specific iframe that might be created for form submission
+      const iframes = document.querySelectorAll('iframe[name="hidden-contact-iframe"]');
+      iframes.forEach(iframe => {
+        console.log('Found hidden contact iframe, removing', iframe);
+        iframe.parentNode.removeChild(iframe);
+      });
+    };
+    
+    // Run immediately and also set an interval to catch dynamically loaded scripts
+    patchHardcodedForms();
+    setInterval(patchHardcodedForms, 1000);
+  }, { once: true });
+  
   // Function to intercept form submissions
   function interceptFormSubmission() {
     // Look for any form submissions to forms.gle
