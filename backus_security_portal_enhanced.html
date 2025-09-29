@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Engagement Portal | The Backus Agency - Pushing buttons, so you don't have to.</title>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #141414;
+            --tertiary-bg: #1a1a1a;
+            --card-bg: #0f0f0f;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --accent-red: #dc2626;
+            --accent-red-dark: #991b1b;
+            --accent-red-light: #ef4444;
+            --accent-blue: #3498db;
+            --accent-blue-dark: #2874a6;
+            --accent-blue-light: #5dade2;
+            --accent-glow: rgba(220, 38, 38, 0.3);
+            --accent-glow-strong: rgba(220, 38, 38, 0.5);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --border: rgba(220, 38, 38, 0.1);
+            --border-hover: rgba(220, 38, 38, 0.3);
+            --gradient-red: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+            --gradient-blue: linear-gradient(135deg, #3498db 0%, #2874a6 100%);
+            --gradient-dark: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.6);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.7);
+            --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .logo-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .section {
+            padding: 4rem 0;
+            min-height: 80vh;
+        }
+
+        .section.hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-red);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stage-selector {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stage-selector h3 {
+            color: var(--accent-red);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .stage-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stage-btn {
+            background: var(--tertiary-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .stage-btn:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stage-btn.active {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .stage-btn .stage-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stage-btn .stage-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stage-btn .stage-templates {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .stage-btn.active .stage-templates {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card.selected {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: var(--accent-red);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-red);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-checkbox {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            background: var(--tertiary-bg);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .card.selected .card-checkbox {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .card.selected .card-checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-red);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .card-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .selection-toolbar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary-bg);
+            border: 1px solid var(--accent-red);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            display: none;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: var(--shadow-xl);
+            z-index: 999;
+        }
+
+        .selection-toolbar.show {
+            display: flex;
+        }
+
+        .selection-count {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .selection-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--accent-glow-strong);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-red);
+            border: 2px solid var(--accent-red);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+        }
+
+        .workflow-timeline {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .workflow-timeline h3 {
+            color: var(--accent-red);
+            margin-bottom: 2rem;
+        }
+
+        .timeline-track {
+            position: relative;
+            padding: 0 2rem;
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .timeline-item:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--tertiary-bg);
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .timeline-item.completed .timeline-dot {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .timeline-item.current .timeline-dot {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 8px var(--accent-glow);
+        }
+
+        .timeline-stage {
+            font-weight: 600;
+            color: var(--accent-red);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-templates {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .timeline-date {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .client-dashboard {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .client-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h4 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .selected-templates {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .template-chip {
+            display: inline-block;
+            background: var(--accent-red);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .share-option {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-option:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-2px);
+        }
+
+        .share-option-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            z-index: 10001;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .notification.error {
+            border-color: var(--accent-red);
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .quick-actions {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .quick-action {
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.5rem;
+        }
+
+        .quick-action:hover {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            transform: scale(1.1);
+        }
+
+        .quick-action-tooltip {
+            position: absolute;
+            right: 70px;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .quick-action:hover .quick-action-tooltip {
+            opacity: 1;
+        }
+
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .text-center { text-align: center; }
+        .hidden { display: none; }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-tabs {
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .selection-toolbar {
+                bottom: 1rem;
+                left: 1rem;
+                right: 1rem;
+                transform: none;
+            }
+
+            .quick-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                            <path d="M20 8L12 16V24L20 32L28 24V16L20 8Z" stroke="white" stroke-width="2" fill="none"/>
+                            <circle cx="20" cy="20" r="4" fill="white"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div>
+                        <div>The Backus Agency</div>
+                        <div class="tagline">Pushing buttons, so you don't have to.</div>
+                    </div>
+                </a>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-section="workflow">Workflow</button>
+                    <button class="nav-tab" data-section="templates">All Templates</button>
+                    <button class="nav-tab" data-section="clients">Clients</button>
+                    <button class="nav-tab" data-section="settings">Settings</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Workflow Section -->
+        <section id="workflow" class="section">
+            <h2 class="section-title">Engagement Workflow Manager</h2>
+
+            <!-- Stage Selector -->
+            <div class="stage-selector">
+                <h3>📊 Quick Stage Selection</h3>
+                <div class="stage-buttons">
+                    <div class="stage-btn" data-stage="initial" data-templates="discovery,outreach">
+                        <div class="stage-icon">🚀</div>
+                        <div class="stage-name">Initial Contact</div>
+                        <div class="stage-templates">Discovery + Outreach</div>
+                    </div>
+                    <div class="stage-btn" data-stage="proposal" data-templates="proposal,methodology,roadmap">
+                        <div class="stage-icon">📝</div>
+                        <div class="stage-name">Proposal Phase</div>
+                        <div class="stage-templates">Proposal + Methodology + Roadmap</div>
+                    </div>
+                    <div class="stage-btn" data-stage="contract" data-templates="sow,authorization,checklist">
+                        <div class="stage-icon">📄</div>
+                        <div class="stage-name">Contract & Auth</div>
+                        <div class="stage-templates">SOW + Authorization + Checklist</div>
+                    </div>
+                    <div class="stage-btn" data-stage="specialized" data-templates="energy">
+                        <div class="stage-icon">⚡</div>
+                        <div class="stage-name">Specialized</div>
+                        <div class="stage-templates">OT/Energy Assessment</div>
+                    </div>
+                    <div class="stage-btn" data-stage="full" data-templates="all">
+                        <div class="stage-icon">🎯</div>
+                        <div class="stage-name">Full Package</div>
+                        <div class="stage-templates">All Templates</div>
+                    </div>
+                    <div class="stage-btn" data-stage="custom" data-templates="">
+                        <div class="stage-icon">⚙️</div>
+                        <div class="stage-name">Custom Selection</div>
+                        <div class="stage-templates">Choose manually</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Timeline -->
+            <div class="workflow-timeline">
+                <h3>📈 Current Engagement Timeline</h3>
+                <div class="timeline-track">
+                    <div class="timeline-line"></div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-stage">Initial Contact</div>
+                            <div class="timeline-templates">✅ Discovery Questions</div>
+                            <div class="timeline-date">Completed: 3 days ago</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item current">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-stage">Proposal Phase</div>
+                            <div class="timeline-templates">📝 Awaiting: Proposal, Methodology</div>
+                            <div class="timeline-date">Due: Tomorrow</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-stage">Contract & Authorization</div>
+                            <div class="timeline-templates">Pending: SOW, Authorization Letter</div>
+                            <div class="timeline-date">Scheduled: Next week</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Templates Section -->
+        <section id="templates" class="section hidden">
+            <h2 class="section-title">Security Engagement Templates</h2>
+
+            <!-- Template Selection Mode Toggle -->
+            <div class="text-center" style="margin-bottom: 2rem;">
+                <button class="btn btn-secondary" id="toggleSelectionMode">
+                    🎯 Enable Multi-Select Mode
+                </button>
+            </div>
+
+            <div class="cards-grid" id="templatesGrid">
+                <div class="card" data-template="outreach">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">📧</div>
+                    <h3>Outreach Email</h3>
+                    <p>Professional initial contact template for potential security engagement opportunities.</p>
+                </div>
+
+                <div class="card" data-template="proposal">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">📊</div>
+                    <h3>Executive Proposal</h3>
+                    <p>Comprehensive security assessment proposal with pricing and methodology.</p>
+                </div>
+
+                <div class="card" data-template="sow">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">📄</div>
+                    <h3>Statement of Work</h3>
+                    <p>Detailed SOW outlining scope, deliverables, and project timeline.</p>
+                </div>
+
+                <div class="card" data-template="authorization">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">✅</div>
+                    <h3>Authorization Letter</h3>
+                    <p>Legal authorization document for security testing activities.</p>
+                </div>
+
+                <div class="card" data-template="discovery">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">❓</div>
+                    <h3>Discovery Questions</h3>
+                    <p>Comprehensive questionnaire for understanding client infrastructure.</p>
+                </div>
+
+                <div class="card" data-template="energy">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">⚡</div>
+                    <h3>OT/Energy Assessment</h3>
+                    <p>Specialized assessment proposal for operational technology and energy sector clients.</p>
+                </div>
+
+                <div class="card" data-template="roadmap">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">🗺️</div>
+                    <h3>Security Roadmap</h3>
+                    <p>Strategic security improvement roadmap with prioritized recommendations.</p>
+                </div>
+
+                <div class="card" data-template="methodology">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">🎯</div>
+                    <h3>Testing Methodology</h3>
+                    <p>Detailed explanation of security testing approach and methodologies.</p>
+                </div>
+
+                <div class="card" data-template="checklist">
+                    <div class="card-checkbox"></div>
+                    <div class="card-icon">☑️</div>
+                    <h3>Engagement Checklist</h3>
+                    <p>Complete checklist for managing security engagement lifecycle.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Clients Section -->
+        <section id="clients" class="section hidden">
+            <h2 class="section-title">Client Management</h2>
+
+            <div class="client-dashboard">
+                <h3>Active Engagements</h3>
+                <div class="client-info">
+                    <div class="info-card">
+                        <div class="info-label">Total Clients</div>
+                        <div class="info-value">12</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Active Engagements</div>
+                        <div class="info-value">5</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Pending Forms</div>
+                        <div class="info-value">8</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">Completed This Month</div>
+                        <div class="info-value">3</div>
+                    </div>
+                </div>
+
+                <!-- Client List would go here -->
+                <div class="mt-2">
+                    <button class="btn btn-primary">➕ Add New Client</button>
+                    <button class="btn btn-secondary" style="margin-left: 1rem;">📊 View Reports</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="section hidden">
+            <h2 class="section-title">Configuration & Settings</h2>
+
+            <div class="stage-selector">
+                <h3>⚙️ Formspree Configuration</h3>
+                <div class="form-group">
+                    <label>Formspree Project ID:</label>
+                    <input type="text" id="formspree-project" value="2836986044681813115" readonly />
+                </div>
+                <div class="form-group">
+                    <label>Notification Email:</label>
+                    <input type="email" id="notification-email" placeholder="your-email@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>Default Message for Clients:</label>
+                    <textarea id="default-message" placeholder="Thank you for your interest in our security services..."></textarea>
+                </div>
+                <button class="btn btn-primary" id="saveSettings">💾 Save Settings</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Selection Toolbar -->
+    <div class="selection-toolbar" id="selectionToolbar">
+        <div class="selection-count">
+            <span id="selectedCount">0</span> templates selected
+        </div>
+        <div class="selection-actions">
+            <button class="btn btn-secondary btn-sm" id="clearSelection">Clear</button>
+            <button class="btn btn-primary btn-sm" id="generateMultiLink">🔗 Generate Multi-Form Link</button>
+            <button class="btn btn-success btn-sm" id="sendSelected">📧 Send to Client</button>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="quick-action" id="quickDashboard">
+            📊
+            <span class="quick-action-tooltip">Dashboard</span>
+        </div>
+        <div class="quick-action" id="quickShare">
+            🔗
+            <span class="quick-action-tooltip">Quick Share</span>
+        </div>
+        <div class="quick-action" id="quickTimeline">
+            📅
+            <span class="quick-action-tooltip">Timeline</span>
+        </div>
+        <div class="quick-action" id="quickHelp">
+            ❓
+            <span class="quick-action-tooltip">Help</span>
+        </div>
+    </div>
+
+    <!-- Multi-Template Share Modal -->
+    <div id="shareModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Share Multiple Templates</h3>
+                <button class="modal-close" id="closeShareModal">×</button>
+            </div>
+            <div>
+                <h4>Selected Templates:</h4>
+                <div class="selected-templates" id="selectedTemplatesList"></div>
+
+                <div class="form-group mt-2">
+                    <label>Client Name:</label>
+                    <input type="text" id="clientName" placeholder="Enter client name" />
+                </div>
+
+                <div class="form-group">
+                    <label>Client Email:</label>
+                    <input type="email" id="clientEmail" placeholder="client@example.com" />
+                </div>
+
+                <div class="form-group">
+                    <label>Personal Message (optional):</label>
+                    <textarea id="personalMessage" placeholder="Add a personal message to the client..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date:</label>
+                    <input type="date" id="dueDate" />
+                </div>
+
+                <h4 class="mt-2">Share Method:</h4>
+                <div class="share-options">
+                    <div class="share-option" id="shareViaLink">
+                        <div class="share-option-icon">🔗</div>
+                        <div>Copy Link</div>
+                    </div>
+                    <div class="share-option" id="shareViaEmail">
+                        <div class="share-option-icon">📧</div>
+                        <div>Send Email</div>
+                    </div>
+                    <div class="share-option" id="shareViaPortal">
+                        <div class="share-option-icon">🌐</div>
+                        <div>Client Portal</div>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button class="btn btn-primary" id="confirmShare">🚀 Generate & Share</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        var currentSection = 'workflow';
+        var selectionMode = false;
+        var selectedTemplates = new Set();
+        var currentStage = '';
+        var clients = [];
+
+        // Stage templates mapping
+        var stageTemplates = {
+            'initial': ['discovery', 'outreach'],
+            'proposal': ['proposal', 'methodology', 'roadmap'],
+            'contract': ['sow', 'authorization', 'checklist'],
+            'specialized': ['energy'],
+            'full': ['outreach', 'proposal', 'sow', 'authorization', 'discovery', 'energy', 'roadmap', 'methodology', 'checklist'],
+            'custom': []
+        };
+
+        // Template names mapping
+        var templateNames = {
+            'outreach': 'Outreach Email',
+            'proposal': 'Executive Proposal',
+            'sow': 'Statement of Work',
+            'authorization': 'Authorization Letter',
+            'discovery': 'Discovery Questions',
+            'energy': 'OT/Energy Assessment',
+            'roadmap': 'Security Roadmap',
+            'methodology': 'Testing Methodology',
+            'checklist': 'Engagement Checklist'
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            setupEventListeners();
+            updateSelectionToolbar();
+        });
+
+        // Load saved settings
+        function loadSettings() {
+            var savedEmail = localStorage.getItem('notification_email');
+            var savedMessage = localStorage.getItem('default_message');
+            var savedClients = localStorage.getItem('clients');
+
+            if (savedEmail) {
+                document.getElementById('notification-email').value = savedEmail;
+            }
+
+            if (savedMessage) {
+                document.getElementById('default-message').value = savedMessage;
+            }
+
+            if (savedClients) {
+                clients = JSON.parse(savedClients);
+            }
+        }
+
+        // Save settings
+        function saveSettings() {
+            var email = document.getElementById('notification-email').value;
+            var message = document.getElementById('default-message').value;
+
+            localStorage.setItem('notification_email', email);
+            localStorage.setItem('default_message', message);
+
+            showNotification('Settings saved successfully!', 'success');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Navigation
+            document.querySelectorAll('.nav-tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    var section = this.getAttribute('data-section');
+                    switchSection(section);
+                });
+            });
+
+            // Stage buttons
+            document.querySelectorAll('.stage-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    selectStage(this.getAttribute('data-stage'));
+                });
+            });
+
+            // Selection mode toggle
+            document.getElementById('toggleSelectionMode').addEventListener('click', toggleSelectionMode);
+
+            // Template cards
+            document.querySelectorAll('.card').forEach(function(card) {
+                card.addEventListener('click', function(e) {
+                    if (selectionMode) {
+                        e.preventDefault();
+                        toggleTemplateSelection(this);
+                    }
+                });
+            });
+
+            // Selection toolbar
+            document.getElementById('clearSelection').addEventListener('click', clearSelection);
+            document.getElementById('generateMultiLink').addEventListener('click', openShareModal);
+            document.getElementById('sendSelected').addEventListener('click', openShareModal);
+
+            // Share modal
+            document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
+            document.getElementById('confirmShare').addEventListener('click', confirmShare);
+
+            // Share options
+            document.getElementById('shareViaLink').addEventListener('click', function() {
+                shareMethod('link');
+            });
+            document.getElementById('shareViaEmail').addEventListener('click', function() {
+                shareMethod('email');
+            });
+            document.getElementById('shareViaPortal').addEventListener('click', function() {
+                shareMethod('portal');
+            });
+
+            // Quick actions
+            document.getElementById('quickDashboard').addEventListener('click', function() {
+                switchSection('clients');
+            });
+            document.getElementById('quickShare').addEventListener('click', function() {
+                enableSelectionMode();
+                switchSection('templates');
+            });
+            document.getElementById('quickTimeline').addEventListener('click', function() {
+                switchSection('workflow');
+            });
+            document.getElementById('quickHelp').addEventListener('click', function() {
+                showHelp();
+            });
+
+            // Settings
+            document.getElementById('saveSettings').addEventListener('click', saveSettings);
+        }
+
+        // Switch section
+        function switchSection(section) {
+            document.querySelectorAll('.section').forEach(function(sec) {
+                sec.classList.add('hidden');
+            });
+            document.querySelectorAll('.nav-tab').forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(section).classList.remove('hidden');
+            document.querySelector('[data-section="' + section + '"]').classList.add('active');
+
+            currentSection = section;
+        }
+
+        // Select stage
+        function selectStage(stage) {
+            // Clear previous selections
+            document.querySelectorAll('.stage-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+
+            // Mark selected stage
+            document.querySelector('[data-stage="' + stage + '"]').classList.add('active');
+            currentStage = stage;
+
+            // Auto-select templates
+            clearSelection();
+            if (stage !== 'custom') {
+                var templates = stageTemplates[stage];
+                templates.forEach(function(template) {
+                    var card = document.querySelector('[data-template="' + template + '"]');
+                    if (card) {
+                        selectedTemplates.add(template);
+                        card.classList.add('selected');
+                    }
+                });
+                updateSelectionToolbar();
+
+                if (templates.length > 0) {
+                    showNotification(templates.length + ' templates selected for ' + stage + ' stage', 'success');
+                }
+            }
+
+            // Switch to templates view
+            switchSection('templates');
+            enableSelectionMode();
+        }
+
+        // Toggle selection mode
+        function toggleSelectionMode() {
+            selectionMode = !selectionMode;
+            var btn = document.getElementById('toggleSelectionMode');
+
+            if (selectionMode) {
+                btn.textContent = '✓ Selection Mode Active';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-primary');
+                document.querySelectorAll('.card-checkbox').forEach(function(cb) {
+                    cb.style.display = 'flex';
+                });
+            } else {
+                btn.textContent = '🎯 Enable Multi-Select Mode';
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+                document.querySelectorAll('.card-checkbox').forEach(function(cb) {
+                    cb.style.display = 'none';
+                });
+                clearSelection();
+            }
+        }
+
+        // Enable selection mode
+        function enableSelectionMode() {
+            if (!selectionMode) {
+                toggleSelectionMode();
+            }
+        }
+
+        // Toggle template selection
+        function toggleTemplateSelection(card) {
+            var template = card.getAttribute('data-template');
+
+            if (selectedTemplates.has(template)) {
+                selectedTemplates.delete(template);
+                card.classList.remove('selected');
+            } else {
+                selectedTemplates.add(template);
+                card.classList.add('selected');
+            }
+
+            updateSelectionToolbar();
+        }
+
+        // Clear selection
+        function clearSelection() {
+            selectedTemplates.clear();
+            document.querySelectorAll('.card').forEach(function(card) {
+                card.classList.remove('selected');
+            });
+            updateSelectionToolbar();
+        }
+
+        // Update selection toolbar
+        function updateSelectionToolbar() {
+            var toolbar = document.getElementById('selectionToolbar');
+            var count = document.getElementById('selectedCount');
+
+            count.textContent = selectedTemplates.size;
+
+            if (selectedTemplates.size > 0) {
+                toolbar.classList.add('show');
+            } else {
+                toolbar.classList.remove('show');
+            }
+        }
+
+        // Open share modal
+        function openShareModal() {
+            if (selectedTemplates.size === 0) {
+                showNotification('Please select at least one template', 'error');
+                return;
+            }
+
+            var modal = document.getElementById('shareModal');
+            var list = document.getElementById('selectedTemplatesList');
+
+            // Display selected templates
+            list.innerHTML = '';
+            selectedTemplates.forEach(function(template) {
+                var chip = document.createElement('span');
+                chip.className = 'template-chip';
+                chip.textContent = templateNames[template];
+                list.appendChild(chip);
+            });
+
+            // Set default due date (1 week from now)
+            var dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 7);
+            document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+
+            modal.classList.add('active');
+        }
+
+        // Close share modal
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        // Confirm share
+        function confirmShare() {
+            var clientName = document.getElementById('clientName').value;
+            var clientEmail = document.getElementById('clientEmail').value;
+            var message = document.getElementById('personalMessage').value;
+            var dueDate = document.getElementById('dueDate').value;
+
+            if (!clientName || !clientEmail) {
+                showNotification('Please enter client name and email', 'error');
+                return;
+            }
+
+            // Generate multi-template link
+            var baseUrl = window.location.origin + window.location.pathname;
+            var templates = Array.from(selectedTemplates).join(',');
+            var shareLink = baseUrl + '?templates=' + templates + '&client=true&name=' + encodeURIComponent(clientName);
+
+            // Save to clients
+            var client = {
+                name: clientName,
+                email: clientEmail,
+                templates: Array.from(selectedTemplates),
+                dueDate: dueDate,
+                shareLink: shareLink,
+                sentDate: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            clients.push(client);
+            localStorage.setItem('clients', JSON.stringify(clients));
+
+            // Copy link to clipboard
+            navigator.clipboard.writeText(shareLink).then(function() {
+                showNotification('Share link copied to clipboard!', 'success');
+            });
+
+            closeShareModal();
+
+            // Prepare email if requested
+            if (message || clientEmail) {
+                var subject = 'Security Assessment Forms - ' + clientName;
+                var body = message + '\n\nPlease complete the following forms by ' + dueDate + ':\n\n' + shareLink;
+                window.location.href = 'mailto:' + clientEmail + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+            }
+        }
+
+        // Share method selection
+        function shareMethod(method) {
+            var options = document.querySelectorAll('.share-option');
+            options.forEach(function(opt) {
+                opt.style.background = '';
+            });
+
+            document.getElementById('shareVia' + method.charAt(0).toUpperCase() + method.slice(1)).style.background = 'var(--accent-red)';
+
+            showNotification('Selected ' + method + ' sharing', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.className = 'notification ' + (type || '');
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 100);
+
+            setTimeout(function() {
+                notification.classList.remove('show');
+                setTimeout(function() {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Show help
+        function showHelp() {
+            alert('Backus Agency Security Portal\n\n' +
+                  'Quick Tips:\n' +
+                  '• Use Stage Selection for common workflows\n' +
+                  '• Enable Multi-Select to choose multiple templates\n' +
+                  '• Generate share links for clients to fill forms\n' +
+                  '• Track engagement progress in Timeline view\n\n' +
+                  'For support: support@backus.agency');
+        }
+
+        // Check URL parameters on load
+        function checkUrlParameters() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var templates = urlParams.get('templates');
+            var clientMode = urlParams.get('client');
+
+            if (templates && clientMode === 'true') {
+                // Client is accessing multi-template forms
+                showClientForms(templates.split(','));
+            }
+        }
+
+        // Show client forms
+        function showClientForms(templates) {
+            // This would redirect to a client-facing view with the selected forms
+            console.log('Loading forms for client:', templates);
+        }
+
+        // Initialize on load
+        checkUrlParameters();
+    </script>
+</body>
+</html>

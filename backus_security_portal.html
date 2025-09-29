@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Engagement Portal | The Backus Agency - Pushing buttons, so you don't have to.</title>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #141414;
+            --tertiary-bg: #1a1a1a;
+            --card-bg: #0f0f0f;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --accent-red: #dc2626;
+            --accent-red-dark: #991b1b;
+            --accent-red-light: #ef4444;
+            --accent-blue: #3498db;
+            --accent-blue-dark: #2874a6;
+            --accent-blue-light: #5dade2;
+            --accent-glow: rgba(220, 38, 38, 0.3);
+            --accent-glow-strong: rgba(220, 38, 38, 0.5);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --border: rgba(220, 38, 38, 0.1);
+            --border-hover: rgba(220, 38, 38, 0.3);
+            --gradient-red: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+            --gradient-blue: linear-gradient(135deg, #3498db 0%, #2874a6 100%);
+            --gradient-dark: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.6);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.7);
+            --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .logo-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .tagline {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .section {
+            padding: 4rem 0;
+            min-height: 80vh;
+        }
+
+        .section.hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-red);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-red);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-red);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--gradient-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--accent-glow-strong);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent-red);
+            border: 2px solid var(--accent-red);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-red);
+            color: white;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .modal.active .modal-content {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-red);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section h4 {
+            color: var(--accent-red);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 1rem;
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .document-preview {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: var(--secondary-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            z-index: 10001;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .text-center { text-align: center; }
+        .hidden { display: none; }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-tabs {
+                gap: 1rem;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                            <path d="M20 8L12 16V24L20 32L28 24V16L20 8Z" stroke="white" stroke-width="2" fill="none"/>
+                            <circle cx="20" cy="20" r="4" fill="white"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7f1d1d;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div>
+                        <div>The Backus Agency</div>
+                        <div class="tagline">Pushing buttons, so you don't have to.</div>
+                    </div>
+                </a>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-section="templates">Templates</button>
+                    <button class="nav-tab" data-section="generator">Quick Generator</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Templates Section -->
+        <section id="templates" class="section">
+            <h2 class="section-title">Security Engagement Templates</h2>
+            <div class="cards-grid">
+                <div class="card" data-template="outreach">
+                    <div class="card-icon">📧</div>
+                    <h3>Outreach Email</h3>
+                    <p>Professional initial contact template for potential security engagement opportunities.</p>
+                </div>
+
+                <div class="card" data-template="proposal">
+                    <div class="card-icon">📊</div>
+                    <h3>Executive Proposal</h3>
+                    <p>Comprehensive security assessment proposal with pricing and methodology.</p>
+                </div>
+
+                <div class="card" data-template="sow">
+                    <div class="card-icon">📄</div>
+                    <h3>Statement of Work</h3>
+                    <p>Detailed SOW outlining scope, deliverables, and project timeline.</p>
+                </div>
+
+                <div class="card" data-template="authorization">
+                    <div class="card-icon">✅</div>
+                    <h3>Authorization Letter</h3>
+                    <p>Legal authorization document for security testing activities.</p>
+                </div>
+
+                <div class="card" data-template="discovery">
+                    <div class="card-icon">❓</div>
+                    <h3>Discovery Questions</h3>
+                    <p>Comprehensive questionnaire for understanding client infrastructure.</p>
+                </div>
+
+                <div class="card" data-template="energy">
+                    <div class="card-icon">⚡</div>
+                    <h3>OT/Energy Assessment</h3>
+                    <p>Specialized assessment proposal for operational technology and energy sector clients.</p>
+                </div>
+
+                <div class="card" data-template="roadmap">
+                    <div class="card-icon">🗺️</div>
+                    <h3>Security Roadmap</h3>
+                    <p>Strategic security improvement roadmap with prioritized recommendations.</p>
+                </div>
+
+                <div class="card" data-template="methodology">
+                    <div class="card-icon">🎯</div>
+                    <h3>Testing Methodology</h3>
+                    <p>Detailed explanation of security testing approach and methodologies.</p>
+                </div>
+
+                <div class="card" data-template="checklist">
+                    <div class="card-icon">☑️</div>
+                    <h3>Engagement Checklist</h3>
+                    <p>Complete checklist for managing security engagement lifecycle.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Generator Section -->
+        <section id="generator" class="section hidden">
+            <h2 class="section-title">Quick Document Generator</h2>
+            <div class="text-center">
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Use saved template data to generate all documents at once</p>
+                <button class="btn btn-primary" id="quickGenerateBtn">
+                    📄 Generate All Documents
+                </button>
+                <button class="btn btn-secondary" id="exportAllBtn" style="margin-left: 1rem;">
+                    💾 Export All Files
+                </button>
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-danger" id="clearAllBtn">
+                        🗑 Clear All Saved Data
+                    </button>
+                </div>
+            </div>
+            <div id="quick-output" class="hidden" style="margin-top: 2rem;"></div>
+        </section>
+    </main>
+
+    <!-- Modal -->
+    <div id="templateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Template</h3>
+                <button class="modal-close" id="closeModalBtn">×</button>
+            </div>
+            <div id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="saveBtn">💾 Save</button>
+                <button class="btn btn-secondary" id="loadBtn">📁 Load</button>
+                <button class="btn btn-primary" id="generateBtn">🚀 Generate</button>
+            </div>
+            <div id="documentPreview" class="hidden">
+                <h4>Generated Document:</h4>
+                <div class="document-preview" id="previewContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Template storage and state
+        var currentTemplate = '';
+        var autoSaveTimer = null;
+
+        // Template form configurations
+        var templateForms = {
+            outreach: {
+                title: 'Outreach Email Template',
+                fields: '<div class="form-group"><label>Your Name:</label><input type="text" id="out-your-name" placeholder="Enter your name"></div><div class="form-group"><label>Your Title:</label><input type="text" id="out-your-title" placeholder="e.g., Security Consultant"></div><div class="form-group"><label>Your Company:</label><input type="text" id="out-your-company" placeholder="Company name"></div><div class="form-group"><label>Contact Email:</label><input type="email" id="out-contact-email" placeholder="your.email@company.com"></div><div class="form-group"><label>Contact Phone:</label><input type="tel" id="out-contact-phone" placeholder="Phone number"></div><div class="form-group"><label>Target Company:</label><input type="text" id="out-target-company" placeholder="Client company name"></div><div class="form-group"><label>Contact Person:</label><input type="text" id="out-contact-person" placeholder="Contact person name"></div><div class="form-group"><label>Contact Title:</label><input type="text" id="out-contact-title" placeholder="Their job title"></div><div class="form-group"><label>Specific Service:</label><select id="out-service"><option value="penetration-testing">Penetration Testing</option><option value="vulnerability-assessment">Vulnerability Assessment</option><option value="compliance-audit">Compliance Audit</option><option value="security-review">Security Review</option><option value="incident-response">Incident Response</option></select></div><div class="form-group"><label>Key Value Proposition:</label><textarea id="out-value-prop" placeholder="What unique value do you bring?"></textarea></div>'
+            },
+            proposal: {
+                title: 'Executive Proposal Template',
+                fields: '<div class="form-group"><label>Client Company:</label><input type="text" id="prop-client-company" placeholder="Client company name"></div><div class="form-group"><label>Client Contact:</label><input type="text" id="prop-client-contact" placeholder="Primary contact name"></div><div class="form-group"><label>Assessment Type:</label><select id="prop-assessment-type"><option value="external">External Penetration Test</option><option value="internal">Internal Network Assessment</option><option value="web-app">Web Application Testing</option><option value="wireless">Wireless Security Assessment</option><option value="social-engineering">Social Engineering Assessment</option><option value="comprehensive">Comprehensive Security Assessment</option></select></div><div class="form-group"><label>Scope Description:</label><textarea id="prop-scope" placeholder="Detailed scope of the assessment"></textarea></div><div class="form-group"><label>Timeline (weeks):</label><input type="number" id="prop-timeline" placeholder="e.g., 4" min="1"></div><div class="form-group"><label>Base Fee:</label><input type="text" id="prop-base-fee" placeholder="e.g., $15,000"></div><div class="form-group"><label>Deliverables:</label><textarea id="prop-deliverables" placeholder="List of deliverables"></textarea></div><div class="form-group"><label>Methodology Overview:</label><textarea id="prop-methodology" placeholder="High-level methodology description"></textarea></div>'
+            },
+            sow: {
+                title: 'Statement of Work Template',
+                fields: '<div class="form-group"><label>Project Title:</label><input type="text" id="sow-project-title" placeholder="Security Assessment Project Title"></div><div class="form-group"><label>Client Company:</label><input type="text" id="sow-client-company" placeholder="Client company name"></div><div class="form-group"><label>Project Start Date:</label><input type="date" id="sow-start-date"></div><div class="form-group"><label>Project End Date:</label><input type="date" id="sow-end-date"></div><div class="form-group"><label>Total Project Value:</label><input type="text" id="sow-total-value" placeholder="e.g., $25,000"></div><div class="form-group"><label>Payment Terms:</label><select id="sow-payment-terms"><option value="net-30">Net 30</option><option value="50-50">50% upfront, 50% completion</option><option value="milestone">Milestone-based</option><option value="weekly">Weekly</option></select></div><div class="form-group"><label>Detailed Scope:</label><textarea id="sow-detailed-scope" placeholder="Comprehensive scope description"></textarea></div><div class="form-group"><label>Exclusions:</label><textarea id="sow-exclusions" placeholder="What is explicitly excluded"></textarea></div><div class="form-group"><label>Key Milestones:</label><textarea id="sow-milestones" placeholder="Project milestones and deadlines"></textarea></div>'
+            },
+            authorization: {
+                title: 'Authorization Letter Template',
+                fields: '<div class="form-group"><label>Client Company Legal Name:</label><input type="text" id="auth-company-legal" placeholder="Full legal company name"></div><div class="form-group"><label>Authorized Signatory:</label><input type="text" id="auth-signatory" placeholder="Name of person authorizing"></div><div class="form-group"><label>Signatory Title:</label><input type="text" id="auth-signatory-title" placeholder="Their official title"></div><div class="form-group"><label>Testing Company:</label><input type="text" id="auth-testing-company" placeholder="Your company name"></div><div class="form-group"><label>Testing Period Start:</label><input type="date" id="auth-start-date"></div><div class="form-group"><label>Testing Period End:</label><input type="date" id="auth-end-date"></div><div class="form-group"><label>Authorized IP Ranges/Domains:</label><textarea id="auth-scope" placeholder="Specific IP ranges, domains, or systems authorized for testing"></textarea></div><div class="form-group"><label>Testing Types Authorized:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="auth-network" style="width: auto; margin-right: 0.5rem;"> Network Penetration Testing</label><br><label><input type="checkbox" id="auth-webapp" style="width: auto; margin-right: 0.5rem;"> Web Application Testing</label><br><label><input type="checkbox" id="auth-wireless" style="width: auto; margin-right: 0.5rem;"> Wireless Security Testing</label><br><label><input type="checkbox" id="auth-social" style="width: auto; margin-right: 0.5rem;"> Social Engineering</label><br><label><input type="checkbox" id="auth-physical" style="width: auto; margin-right: 0.5rem;"> Physical Security Testing</label></div></div><div class="form-group"><label>Emergency Contact:</label><input type="text" id="auth-emergency-contact" placeholder="24/7 contact information"></div>'
+            },
+            discovery: {
+                title: 'Discovery Questions Template',
+                fields: '<div class="form-group"><label>Client Company:</label><input type="text" id="disc-company" placeholder="Client company name"></div><div class="form-group"><label>Industry/Sector:</label><input type="text" id="disc-industry" placeholder="e.g., Healthcare, Finance, Manufacturing"></div><div class="form-group"><label>Company Size (employees):</label><select id="disc-size"><option value="1-50">1-50 employees</option><option value="51-200">51-200 employees</option><option value="201-1000">201-1000 employees</option><option value="1000+">1000+ employees</option></select></div><div class="form-group"><label>Primary Business Function:</label><textarea id="disc-business-function" placeholder="What does the company do?"></textarea></div><div class="form-group"><label>Current IT Infrastructure:</label><textarea id="disc-infrastructure" placeholder="Describe current IT setup"></textarea></div><div class="form-group"><label>Cloud Services Used:</label><textarea id="disc-cloud" placeholder="AWS, Azure, Google Cloud, etc."></textarea></div><div class="form-group"><label>Compliance Requirements:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="disc-hipaa" style="width: auto; margin-right: 0.5rem;"> HIPAA</label><br><label><input type="checkbox" id="disc-pci" style="width: auto; margin-right: 0.5rem;"> PCI DSS</label><br><label><input type="checkbox" id="disc-sox" style="width: auto; margin-right: 0.5rem;"> SOX</label><br><label><input type="checkbox" id="disc-gdpr" style="width: auto; margin-right: 0.5rem;"> GDPR</label><br><label><input type="checkbox" id="disc-iso" style="width: auto; margin-right: 0.5rem;"> ISO 27001</label></div></div><div class="form-group"><label>Previous Security Assessments:</label><textarea id="disc-previous" placeholder="When was the last assessment? What were the findings?"></textarea></div><div class="form-group"><label>Current Security Concerns:</label><textarea id="disc-concerns" placeholder="What are the main security concerns?"></textarea></div>'
+            },
+            energy: {
+                title: 'OT/Energy Assessment Template',
+                fields: '<div class="form-group"><label>Facility Type:</label><select id="energy-facility-type"><option value="power-generation">Power Generation</option><option value="transmission">Transmission</option><option value="distribution">Distribution</option><option value="oil-gas">Oil & Gas</option><option value="renewable">Renewable Energy</option><option value="nuclear">Nuclear</option><option value="manufacturing">Manufacturing</option></select></div><div class="form-group"><label>Client Company:</label><input type="text" id="energy-company" placeholder="Energy company name"></div><div class="form-group"><label>Facility Location:</label><input type="text" id="energy-location" placeholder="Facility location"></div><div class="form-group"><label>OT Systems Present:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="energy-scada" style="width: auto; margin-right: 0.5rem;"> SCADA Systems</label><br><label><input type="checkbox" id="energy-hmi" style="width: auto; margin-right: 0.5rem;"> HMI Interfaces</label><br><label><input type="checkbox" id="energy-plc" style="width: auto; margin-right: 0.5rem;"> PLCs</label><br><label><input type="checkbox" id="energy-dcs" style="width: auto; margin-right: 0.5rem;"> DCS</label><br><label><input type="checkbox" id="energy-historian" style="width: auto; margin-right: 0.5rem;"> Historians</label><br><label><input type="checkbox" id="energy-safety" style="width: auto; margin-right: 0.5rem;"> Safety Instrumented Systems</label></div></div><div class="form-group"><label>Network Segmentation:</label><textarea id="energy-segmentation" placeholder="Describe IT/OT network separation"></textarea></div><div class="form-group"><label>Critical Operations:</label><textarea id="energy-critical-ops" placeholder="Operations that cannot be interrupted"></textarea></div><div class="form-group"><label>Assessment Base Fee:</label><input type="text" id="energy-base-fee" placeholder="e.g., $35,000"></div><div class="form-group"><label>OT Premium (%):</label><input type="number" id="energy-premium" placeholder="40" value="40" min="0" max="100"></div><div class="form-group"><label>Total Fee:</label><input type="text" id="energy-total-fee" placeholder="Calculated automatically" readonly></div><div class="form-group"><label>Special Considerations:</label><textarea id="energy-considerations" placeholder="Safety protocols, downtime windows, etc."></textarea></div>'
+            },
+            roadmap: {
+                title: 'Security Roadmap Template',
+                fields: '<div class="form-group"><label>Client Company:</label><input type="text" id="road-company" placeholder="Client company name"></div><div class="form-group"><label>Current Security Maturity:</label><select id="road-maturity"><option value="basic">Basic (Ad-hoc)</option><option value="developing">Developing (Some processes)</option><option value="defined">Defined (Documented processes)</option><option value="managed">Managed (Measured processes)</option><option value="optimized">Optimized (Continuous improvement)</option></select></div><div class="form-group"><label>Target Maturity Level:</label><select id="road-target"><option value="developing">Developing</option><option value="defined">Defined</option><option value="managed">Managed</option><option value="optimized">Optimized</option></select></div><div class="form-group"><label>Timeline for Improvement:</label><select id="road-timeline"><option value="6-months">6 months</option><option value="12-months">12 months</option><option value="18-months">18 months</option><option value="24-months">24 months</option></select></div><div class="form-group"><label>Budget Range:</label><select id="road-budget"><option value="low">$50K - $100K</option><option value="medium">$100K - $250K</option><option value="high">$250K - $500K</option><option value="enterprise">$500K+</option></select></div><div class="form-group"><label>Priority Areas:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="road-network" style="width: auto; margin-right: 0.5rem;"> Network Security</label><br><label><input type="checkbox" id="road-endpoint" style="width: auto; margin-right: 0.5rem;"> Endpoint Protection</label><br><label><input type="checkbox" id="road-identity" style="width: auto; margin-right: 0.5rem;"> Identity Management</label><br><label><input type="checkbox" id="road-governance" style="width: auto; margin-right: 0.5rem;"> Governance & Compliance</label><br><label><input type="checkbox" id="road-training" style="width: auto; margin-right: 0.5rem;"> Security Awareness</label><br><label><input type="checkbox" id="road-incident" style="width: auto; margin-right: 0.5rem;"> Incident Response</label></div></div><div class="form-group"><label>Regulatory Requirements:</label><textarea id="road-regulatory" placeholder="Specific compliance requirements"></textarea></div><div class="form-group"><label>Key Business Drivers:</label><textarea id="road-drivers" placeholder="What is driving this security initiative?"></textarea></div>'
+            },
+            methodology: {
+                title: 'Testing Methodology Template',
+                fields: '<div class="form-group"><label>Assessment Type:</label><select id="meth-type"><option value="penetration-test">Penetration Test</option><option value="vulnerability-assessment">Vulnerability Assessment</option><option value="red-team">Red Team Engagement</option><option value="compliance-audit">Compliance Audit</option><option value="architecture-review">Architecture Review</option></select></div><div class="form-group"><label>Testing Framework:</label><select id="meth-framework"><option value="owasp">OWASP Testing Guide</option><option value="nist">NIST SP 800-115</option><option value="osstmm">OSSTMM</option><option value="ptes">PTES</option><option value="custom">Custom Methodology</option></select></div><div class="form-group"><label>Testing Phases:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="meth-planning" style="width: auto; margin-right: 0.5rem;" checked> Planning & Reconnaissance</label><br><label><input type="checkbox" id="meth-scanning" style="width: auto; margin-right: 0.5rem;" checked> Scanning & Enumeration</label><br><label><input type="checkbox" id="meth-gaining" style="width: auto; margin-right: 0.5rem;" checked> Gaining Access</label><br><label><input type="checkbox" id="meth-maintaining" style="width: auto; margin-right: 0.5rem;" checked> Maintaining Access</label><br><label><input type="checkbox" id="meth-covering" style="width: auto; margin-right: 0.5rem;"> Covering Tracks</label><br><label><input type="checkbox" id="meth-reporting" style="width: auto; margin-right: 0.5rem;" checked> Analysis & Reporting</label></div></div><div class="form-group"><label>Tools Categories:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="meth-network" style="width: auto; margin-right: 0.5rem;"> Network Scanners</label><br><label><input type="checkbox" id="meth-webapp" style="width: auto; margin-right: 0.5rem;"> Web Application Scanners</label><br><label><input type="checkbox" id="meth-exploit" style="width: auto; margin-right: 0.5rem;"> Exploitation Frameworks</label><br><label><input type="checkbox" id="meth-social" style="width: auto; margin-right: 0.5rem;"> Social Engineering Tools</label><br><label><input type="checkbox" id="meth-wireless" style="width: auto; margin-right: 0.5rem;"> Wireless Testing Tools</label></div></div><div class="form-group"><label>Specific Tools Used:</label><textarea id="meth-tools" placeholder="List specific tools (Nmap, Burp Suite, Metasploit, etc.)"></textarea></div><div class="form-group"><label>Testing Approach:</label><select id="meth-approach"><option value="black-box">Black Box (No prior knowledge)</option><option value="gray-box">Gray Box (Limited knowledge)</option><option value="white-box">White Box (Full knowledge)</option><option value="hybrid">Hybrid Approach</option></select></div><div class="form-group"><label>Reporting Format:</label><select id="meth-reporting-format"><option value="executive">Executive Summary + Technical Details</option><option value="technical">Technical Report Only</option><option value="compliance">Compliance-focused Report</option><option value="custom">Custom Format</option></select></div><div class="form-group"><label>Special Considerations:</label><textarea id="meth-considerations" placeholder="Testing windows, contact procedures, etc."></textarea></div>'
+            },
+            checklist: {
+                title: 'Engagement Checklist Template',
+                fields: '<div class="form-group"><label>Client Company:</label><input type="text" id="check-company" placeholder="Client company name"></div><div class="form-group"><label>Project Manager:</label><input type="text" id="check-pm" placeholder="Your project manager name"></div><div class="form-group"><label>Client Primary Contact:</label><input type="text" id="check-client-contact" placeholder="Client main contact"></div><div class="form-group"><label>Engagement Type:</label><select id="check-engagement-type"><option value="penetration-test">Penetration Test</option><option value="vulnerability-assessment">Vulnerability Assessment</option><option value="compliance-audit">Compliance Audit</option><option value="security-review">Security Review</option><option value="incident-response">Incident Response</option></select></div><div class="form-group"><label>Start Date:</label><input type="date" id="check-start-date"></div><div class="form-group"><label>End Date:</label><input type="date" id="check-end-date"></div><div class="form-group"><label>Project Value:</label><input type="text" id="check-value" placeholder="e.g., $25,000"></div><div class="form-group"><label>Testing Windows:</label><textarea id="check-windows" placeholder="Preferred testing times/dates"></textarea></div><div class="form-group"><label>Key Deliverables:</label><div style="margin-top: 0.5rem;"><label><input type="checkbox" id="check-exec-summary" style="width: auto; margin-right: 0.5rem;"> Executive Summary</label><br><label><input type="checkbox" id="check-tech-report" style="width: auto; margin-right: 0.5rem;"> Technical Report</label><br><label><input type="checkbox" id="check-remediation" style="width: auto; margin-right: 0.5rem;"> Remediation Plan</label><br><label><input type="checkbox" id="check-presentation" style="width: auto; margin-right: 0.5rem;"> Executive Presentation</label><br><label><input type="checkbox" id="check-retest" style="width: auto; margin-right: 0.5rem;"> Retest (if applicable)</label></div></div><div class="form-group"><label>Communication Preferences:</label><textarea id="check-communication" placeholder="Daily standup, weekly reports, etc."></textarea></div><div class="form-group"><label>Emergency Contacts:</label><textarea id="check-emergency" placeholder="24/7 contact information"></textarea></div><div class="form-group"><label>Special Requirements:</label><textarea id="check-requirements" placeholder="NDAs, background checks, facility access, etc."></textarea></div>'
+            }
+        };
+
+        // Show notification function
+        function showNotification(message, type) {
+            var notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(function() {
+                notification.classList.add('show');
+            }, 100);
+
+            setTimeout(function() {
+                notification.classList.remove('show');
+                setTimeout(function() {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Navigation handling
+        function switchSection(sectionId) {
+            var sections = document.querySelectorAll('.section');
+            var tabs = document.querySelectorAll('.nav-tab');
+
+            sections.forEach(function(section) {
+                section.classList.add('hidden');
+            });
+
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+
+            var targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            var activeTab = document.querySelector('[data-section="' + sectionId + '"]');
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+        }
+
+        // Template modal functions
+        function openTemplate(type) {
+            currentTemplate = type;
+            var modal = document.getElementById('templateModal');
+            var modalTitle = document.getElementById('modalTitle');
+            var modalBody = document.getElementById('modalBody');
+
+            var template = templateForms[type];
+            if (template) {
+                modalTitle.textContent = template.title;
+                modalBody.innerHTML = '<form id="' + type + '-form">' + template.fields + '</form>';
+                modal.classList.add('active');
+                loadTemplateData();
+            }
+        }
+
+        function closeModal() {
+            var modal = document.getElementById('templateModal');
+            var preview = document.getElementById('documentPreview');
+            modal.classList.remove('active');
+            preview.classList.add('hidden');
+            currentTemplate = '';
+        }
+
+        // Save template data
+        function saveTemplateData() {
+            if (!currentTemplate) return;
+
+            var form = document.getElementById(currentTemplate + '-form');
+            if (!form) return;
+
+            var data = {};
+            var inputs = form.querySelectorAll('input, textarea, select');
+
+            inputs.forEach(function(input) {
+                if (input.type === 'checkbox') {
+                    data[input.id] = input.checked;
+                } else {
+                    data[input.id] = input.value;
+                }
+            });
+
+            try {
+                localStorage.setItem('template_' + currentTemplate, JSON.stringify(data));
+                showNotification('Template data saved successfully!', 'success');
+            } catch(e) {
+                showNotification('Failed to save template data', 'error');
+            }
+        }
+
+        // Load template data
+        function loadTemplateData() {
+            if (!currentTemplate) return;
+
+            try {
+                var saved = localStorage.getItem('template_' + currentTemplate);
+                if (saved) {
+                    var data = JSON.parse(saved);
+
+                    Object.keys(data).forEach(function(key) {
+                        var element = document.getElementById(key);
+                        if (element) {
+                            if (element.type === 'checkbox') {
+                                element.checked = data[key];
+                            } else {
+                                element.value = data[key];
+                            }
+                        }
+                    });
+
+                    showNotification('Saved data loaded successfully!', 'success');
+                }
+            } catch(e) {
+                showNotification('Failed to load saved data', 'error');
+            }
+        }
+
+        // Generate template document
+        function generateTemplate() {
+            if (!currentTemplate) return;
+
+            var content = '';
+            switch(currentTemplate) {
+                case 'outreach':
+                    content = generateOutreachEmail();
+                    break;
+                case 'proposal':
+                    content = generateProposal();
+                    break;
+                case 'sow':
+                    content = generateSOW();
+                    break;
+                case 'authorization':
+                    content = generateAuthorization();
+                    break;
+                case 'discovery':
+                    content = generateDiscoveryChecklist();
+                    break;
+                case 'energy':
+                    content = generateEnergyAssessment();
+                    break;
+                case 'roadmap':
+                    content = generateSecurityRoadmap();
+                    break;
+                case 'methodology':
+                    content = generateMethodology();
+                    break;
+                case 'checklist':
+                    content = generateEngagementChecklist();
+                    break;
+            }
+
+            if (content) {
+                var preview = document.getElementById('documentPreview');
+                var previewContent = document.getElementById('previewContent');
+                previewContent.textContent = content;
+                preview.classList.remove('hidden');
+
+                // Add download button
+                var downloadBtn = document.getElementById('downloadBtn');
+                if (!downloadBtn) {
+                    downloadBtn = document.createElement('button');
+                    downloadBtn.id = 'downloadBtn';
+                    downloadBtn.className = 'btn btn-success mt-2';
+                    downloadBtn.textContent = 'Download Document';
+                    downloadBtn.addEventListener('click', function() {
+                        downloadDocument(content, currentTemplate + '.txt');
+                    });
+                    preview.appendChild(downloadBtn);
+                }
+
+                showNotification('Document generated successfully!', 'success');
+            }
+        }
+
+        // Document generation functions
+        function generateOutreachEmail() {
+            var yourName = document.getElementById('out-your-name').value || '[Your Name]';
+            var yourTitle = document.getElementById('out-your-title').value || '[Your Title]';
+            var yourCompany = document.getElementById('out-your-company').value || '[Your Company]';
+            var contactEmail = document.getElementById('out-contact-email').value || '[Your Email]';
+            var contactPhone = document.getElementById('out-contact-phone').value || '[Your Phone]';
+            var targetCompany = document.getElementById('out-target-company').value || '[Target Company]';
+            var contactPerson = document.getElementById('out-contact-person').value || '[Contact Person]';
+            var contactTitle = document.getElementById('out-contact-title').value || '[Contact Title]';
+            var service = document.getElementById('out-service').value || 'security assessment';
+            var valueProp = document.getElementById('out-value-prop').value || '[Your unique value proposition]';
+
+            return 'Subject: Security Assessment Opportunity for ' + targetCompany + '\n\n' +
+                   'Dear ' + contactPerson + ',\n\n' +
+                   'I hope this email finds you well. My name is ' + yourName + ', and I am a ' + yourTitle + ' with ' + yourCompany + '. We specialize in helping organizations like ' + targetCompany + ' strengthen their cybersecurity posture through comprehensive ' + service + ' services.\n\n' +
+                   'In today\'s threat landscape, proactive security assessment is crucial for protecting sensitive data and maintaining business continuity. ' + valueProp + '\n\n' +
+                   'I would welcome the opportunity to discuss how our security assessment services could benefit ' + targetCompany + '. Our approach includes:\n\n' +
+                   '• Comprehensive evaluation of your current security posture\n' +
+                   '• Identification of potential vulnerabilities and risks\n' +
+                   '• Detailed remediation recommendations\n' +
+                   '• Executive summary for leadership\n' +
+                   '• Ongoing support for security improvements\n\n' +
+                   'Would you be available for a brief 15-20 minute call in the coming week to discuss your security priorities and how we might be able to assist?\n\n' +
+                   'Thank you for your time and consideration. I look forward to hearing from you.\n\n' +
+                   'Best regards,\n\n' +
+                   yourName + '\n' +
+                   yourTitle + '\n' +
+                   yourCompany + '\n' +
+                   'Email: ' + contactEmail + '\n' +
+                   'Phone: ' + contactPhone;
+        }
+
+        function generateProposal() {
+            var clientCompany = document.getElementById('prop-client-company').value || '[Client Company]';
+            var clientContact = document.getElementById('prop-client-contact').value || '[Client Contact]';
+            var assessmentType = document.getElementById('prop-assessment-type').value || 'comprehensive assessment';
+            var scope = document.getElementById('prop-scope').value || '[Detailed scope description]';
+            var timeline = document.getElementById('prop-timeline').value || '[Timeline]';
+            var baseFee = document.getElementById('prop-base-fee').value || '[Base Fee]';
+            var deliverables = document.getElementById('prop-deliverables').value || '[List of deliverables]';
+            var methodology = document.getElementById('prop-methodology').value || '[Methodology overview]';
+
+            return 'SECURITY ASSESSMENT PROPOSAL\n' +
+                   '=====================================\n\n' +
+                   'Prepared for: ' + clientCompany + '\n' +
+                   'Attention: ' + clientContact + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'EXECUTIVE SUMMARY\n' +
+                   '-----------------\n' +
+                   'We are pleased to present this proposal for a ' + assessmentType + ' for ' + clientCompany + '. This comprehensive security assessment will provide your organization with a detailed understanding of your current security posture and actionable recommendations for improvement.\n\n' +
+                   'SCOPE OF WORK\n' +
+                   '-------------\n' +
+                   scope + '\n\n' +
+                   'METHODOLOGY\n' +
+                   '-----------\n' +
+                   methodology + '\n\n' +
+                   'TIMELINE\n' +
+                   '--------\n' +
+                   'The assessment will be completed within ' + timeline + ' weeks from project initiation.\n\n' +
+                   'DELIVERABLES\n' +
+                   '------------\n' +
+                   deliverables + '\n\n' +
+                   'INVESTMENT\n' +
+                   '----------\n' +
+                   'Total Project Fee: ' + baseFee + '\n\n' +
+                   'This proposal is valid for 30 days from the date above. We look forward to partnering with ' + clientCompany + ' on this important security initiative.\n\n' +
+                   'Sincerely,\n' +
+                   'The Backus Agency Security Team';
+        }
+
+        function generateSOW() {
+            var projectTitle = document.getElementById('sow-project-title').value || '[Project Title]';
+            var clientCompany = document.getElementById('sow-client-company').value || '[Client Company]';
+            var startDate = document.getElementById('sow-start-date').value || '[Start Date]';
+            var endDate = document.getElementById('sow-end-date').value || '[End Date]';
+            var totalValue = document.getElementById('sow-total-value').value || '[Total Value]';
+            var paymentTerms = document.getElementById('sow-payment-terms').value || '[Payment Terms]';
+            var detailedScope = document.getElementById('sow-detailed-scope').value || '[Detailed Scope]';
+            var exclusions = document.getElementById('sow-exclusions').value || '[Exclusions]';
+            var milestones = document.getElementById('sow-milestones').value || '[Milestones]';
+
+            return 'STATEMENT OF WORK\n' +
+                   '==================\n\n' +
+                   'Project: ' + projectTitle + '\n' +
+                   'Client: ' + clientCompany + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   '1. PROJECT OVERVIEW\n' +
+                   '-------------------\n' +
+                   'This Statement of Work defines the scope, deliverables, timeline, and terms for the ' + projectTitle + ' engagement with ' + clientCompany + '.\n\n' +
+                   '2. PROJECT TIMELINE\n' +
+                   '-------------------\n' +
+                   'Start Date: ' + startDate + '\n' +
+                   'End Date: ' + endDate + '\n\n' +
+                   '3. SCOPE OF WORK\n' +
+                   '----------------\n' +
+                   detailedScope + '\n\n' +
+                   '4. EXCLUSIONS\n' +
+                   '-------------\n' +
+                   exclusions + '\n\n' +
+                   '5. MILESTONES\n' +
+                   '-------------\n' +
+                   milestones + '\n\n' +
+                   '6. FINANCIAL TERMS\n' +
+                   '------------------\n' +
+                   'Total Project Value: ' + totalValue + '\n' +
+                   'Payment Terms: ' + paymentTerms + '\n\n' +
+                   '7. ASSUMPTIONS\n' +
+                   '--------------\n' +
+                   '• Client will provide necessary access and documentation\n' +
+                   '• Testing will be conducted during agreed-upon windows\n' +
+                   '• Client personnel will be available for coordination\n\n' +
+                   'By signing below, both parties agree to the terms outlined in this Statement of Work.\n\n' +
+                   'Client Signature: ______________________ Date: __________\n\n' +
+                   'Vendor Signature: ______________________ Date: __________';
+        }
+
+        function generateAuthorization() {
+            var companyLegal = document.getElementById('auth-company-legal').value || '[Company Legal Name]';
+            var signatory = document.getElementById('auth-signatory').value || '[Signatory Name]';
+            var signatoryTitle = document.getElementById('auth-signatory-title').value || '[Signatory Title]';
+            var testingCompany = document.getElementById('auth-testing-company').value || '[Testing Company]';
+            var startDate = document.getElementById('auth-start-date').value || '[Start Date]';
+            var endDate = document.getElementById('auth-end-date').value || '[End Date]';
+            var scope = document.getElementById('auth-scope').value || '[Authorized Scope]';
+            var emergencyContact = document.getElementById('auth-emergency-contact').value || '[Emergency Contact]';
+
+            var authorizedTypes = [];
+            if (document.getElementById('auth-network').checked) authorizedTypes.push('Network Penetration Testing');
+            if (document.getElementById('auth-webapp').checked) authorizedTypes.push('Web Application Testing');
+            if (document.getElementById('auth-wireless').checked) authorizedTypes.push('Wireless Security Testing');
+            if (document.getElementById('auth-social').checked) authorizedTypes.push('Social Engineering');
+            if (document.getElementById('auth-physical').checked) authorizedTypes.push('Physical Security Testing');
+
+            return 'SECURITY TESTING AUTHORIZATION LETTER\n' +
+                   '======================================\n\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'I, ' + signatory + ', ' + signatoryTitle + ' of ' + companyLegal + ', hereby authorize ' + testingCompany + ' to conduct security testing activities on our systems and infrastructure.\n\n' +
+                   'AUTHORIZED TESTING PERIOD:\n' +
+                   'From: ' + startDate + '\n' +
+                   'To: ' + endDate + '\n\n' +
+                   'AUTHORIZED SCOPE:\n' +
+                   scope + '\n\n' +
+                   'AUTHORIZED TESTING TYPES:\n' +
+                   authorizedTypes.map(function(type) { return '• ' + type; }).join('\n') + '\n\n' +
+                   'CONDITIONS:\n' +
+                   '• All testing activities must be coordinated with our IT team\n' +
+                   '• Testing must not disrupt critical business operations\n' +
+                   '• Any discovered vulnerabilities must be reported immediately\n' +
+                   '• All findings must be kept confidential\n\n' +
+                   'EMERGENCY CONTACT:\n' +
+                   emergencyContact + '\n\n' +
+                   'This authorization is specifically limited to the scope and timeframe outlined above. Any testing outside of these parameters requires additional written authorization.\n\n' +
+                   'Signature: ______________________\n' +
+                   'Name: ' + signatory + '\n' +
+                   'Title: ' + signatoryTitle + '\n' +
+                   'Company: ' + companyLegal + '\n' +
+                   'Date: ______________________';
+        }
+
+        function generateDiscoveryChecklist() {
+            var company = document.getElementById('disc-company').value || '[Company Name]';
+            var industry = document.getElementById('disc-industry').value || '[Industry]';
+            var size = document.getElementById('disc-size').value || '[Company Size]';
+            var businessFunction = document.getElementById('disc-business-function').value || '[Business Function]';
+            var infrastructure = document.getElementById('disc-infrastructure').value || '[Infrastructure Description]';
+            var cloud = document.getElementById('disc-cloud').value || '[Cloud Services]';
+            var previous = document.getElementById('disc-previous').value || '[Previous Assessments]';
+            var concerns = document.getElementById('disc-concerns').value || '[Security Concerns]';
+
+            var compliance = [];
+            if (document.getElementById('disc-hipaa').checked) compliance.push('HIPAA');
+            if (document.getElementById('disc-pci').checked) compliance.push('PCI DSS');
+            if (document.getElementById('disc-sox').checked) compliance.push('SOX');
+            if (document.getElementById('disc-gdpr').checked) compliance.push('GDPR');
+            if (document.getElementById('disc-iso').checked) compliance.push('ISO 27001');
+
+            return 'SECURITY ASSESSMENT DISCOVERY QUESTIONNAIRE\n' +
+                   '=============================================\n\n' +
+                   'Client: ' + company + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'COMPANY INFORMATION\n' +
+                   '-------------------\n' +
+                   'Company Name: ' + company + '\n' +
+                   'Industry/Sector: ' + industry + '\n' +
+                   'Company Size: ' + size + '\n' +
+                   'Primary Business Function: ' + businessFunction + '\n\n' +
+                   'TECHNICAL INFRASTRUCTURE\n' +
+                   '------------------------\n' +
+                   'Current IT Infrastructure:\n' + infrastructure + '\n\n' +
+                   'Cloud Services Used:\n' + cloud + '\n\n' +
+                   'COMPLIANCE REQUIREMENTS\n' +
+                   '-----------------------\n' +
+                   'Applicable Regulations: ' + (compliance.length > 0 ? compliance.join(', ') : 'None specified') + '\n\n' +
+                   'SECURITY HISTORY\n' +
+                   '----------------\n' +
+                   'Previous Security Assessments:\n' + previous + '\n\n' +
+                   'Current Security Concerns:\n' + concerns + '\n\n' +
+                   'NEXT STEPS\n' +
+                   '----------\n' +
+                   'Based on this information, we will:\n' +
+                   '1. Develop a customized assessment approach\n' +
+                   '2. Create detailed scope documentation\n' +
+                   '3. Provide timeline and resource estimates\n' +
+                   '4. Schedule kick-off meeting with stakeholders';
+        }
+
+        function generateEnergyAssessment() {
+            var facilityType = document.getElementById('energy-facility-type').value || '[Facility Type]';
+            var company = document.getElementById('energy-company').value || '[Company Name]';
+            var location = document.getElementById('energy-location').value || '[Location]';
+            var segmentation = document.getElementById('energy-segmentation').value || '[Network Segmentation]';
+            var criticalOps = document.getElementById('energy-critical-ops').value || '[Critical Operations]';
+            var baseFee = document.getElementById('energy-base-fee').value || '[Base Fee]';
+            var premium = document.getElementById('energy-premium').value || '40';
+            var totalFee = document.getElementById('energy-total-fee').value || '[Total Fee]';
+            var considerations = document.getElementById('energy-considerations').value || '[Special Considerations]';
+
+            var otSystems = [];
+            if (document.getElementById('energy-scada').checked) otSystems.push('SCADA Systems');
+            if (document.getElementById('energy-hmi').checked) otSystems.push('HMI Interfaces');
+            if (document.getElementById('energy-plc').checked) otSystems.push('PLCs');
+            if (document.getElementById('energy-dcs').checked) otSystems.push('DCS');
+            if (document.getElementById('energy-historian').checked) otSystems.push('Historians');
+            if (document.getElementById('energy-safety').checked) otSystems.push('Safety Instrumented Systems');
+
+            return 'OPERATIONAL TECHNOLOGY SECURITY ASSESSMENT PROPOSAL\n' +
+                   '====================================================\n\n' +
+                   'Client: ' + company + '\n' +
+                   'Facility Type: ' + facilityType + '\n' +
+                   'Location: ' + location + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'EXECUTIVE SUMMARY\n' +
+                   '-----------------\n' +
+                   'This proposal outlines a comprehensive Operational Technology (OT) security assessment for ' + company + '\'s ' + facilityType + ' facility. Our specialized approach addresses the unique security challenges of industrial control systems while ensuring operational continuity.\n\n' +
+                   'OT SYSTEMS IDENTIFIED\n' +
+                   '---------------------\n' +
+                   otSystems.map(function(system) { return '• ' + system; }).join('\n') + '\n\n' +
+                   'NETWORK ARCHITECTURE\n' +
+                   '--------------------\n' +
+                   'Current IT/OT Segmentation:\n' + segmentation + '\n\n' +
+                   'CRITICAL OPERATIONS\n' +
+                   '-------------------\n' +
+                   'Operations requiring special consideration:\n' + criticalOps + '\n\n' +
+                   'ASSESSMENT APPROACH\n' +
+                   '-------------------\n' +
+                   '1. PASSIVE RECONNAISSANCE\n' +
+                   '   • Network traffic analysis\n' +
+                   '   • Protocol identification\n' +
+                   '   • Asset discovery\n\n' +
+                   '2. ACTIVE TESTING (LIMITED)\n' +
+                   '   • Non-intrusive vulnerability scanning\n' +
+                   '   • Configuration review\n' +
+                   '   • Access control testing\n\n' +
+                   '3. SOCIAL ENGINEERING\n' +
+                   '   • Targeted phishing simulation\n' +
+                   '   • Physical security assessment\n\n' +
+                   'SPECIAL CONSIDERATIONS\n' +
+                   '----------------------\n' +
+                   considerations + '\n\n' +
+                   'INVESTMENT\n' +
+                   '----------\n' +
+                   'Base Assessment Fee: ' + baseFee + '\n' +
+                   'OT Complexity Premium (' + premium + '%): \n' +
+                   'Total Project Investment: ' + totalFee + '\n\n' +
+                   'The OT premium reflects the specialized expertise, tools, and safety protocols required for industrial control system testing.\n\n' +
+                   'DELIVERABLES\n' +
+                   '------------\n' +
+                   '• Executive summary with risk overview\n' +
+                   '• Technical findings and evidence\n' +
+                   '• OT-specific remediation roadmap\n' +
+                   '• ICS/SCADA security best practices guide\n' +
+                   '• Regulatory compliance mapping (NERC CIP, etc.)';
+        }
+
+        function generateSecurityRoadmap() {
+            var company = document.getElementById('road-company').value || '[Company Name]';
+            var maturity = document.getElementById('road-maturity').value || '[Current Maturity]';
+            var target = document.getElementById('road-target').value || '[Target Maturity]';
+            var timeline = document.getElementById('road-timeline').value || '[Timeline]';
+            var budget = document.getElementById('road-budget').value || '[Budget Range]';
+            var regulatory = document.getElementById('road-regulatory').value || '[Regulatory Requirements]';
+            var drivers = document.getElementById('road-drivers').value || '[Business Drivers]';
+
+            var priorities = [];
+            if (document.getElementById('road-network').checked) priorities.push('Network Security');
+            if (document.getElementById('road-endpoint').checked) priorities.push('Endpoint Protection');
+            if (document.getElementById('road-identity').checked) priorities.push('Identity Management');
+            if (document.getElementById('road-governance').checked) priorities.push('Governance & Compliance');
+            if (document.getElementById('road-training').checked) priorities.push('Security Awareness');
+            if (document.getElementById('road-incident').checked) priorities.push('Incident Response');
+
+            return 'CYBERSECURITY ROADMAP\n' +
+                   '=====================\n\n' +
+                   'Organization: ' + company + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'CURRENT STATE ASSESSMENT\n' +
+                   '------------------------\n' +
+                   'Current Security Maturity Level: ' + maturity.charAt(0).toUpperCase() + maturity.slice(1) + '\n' +
+                   'Target Maturity Level: ' + target.charAt(0).toUpperCase() + target.slice(1) + '\n' +
+                   'Implementation Timeline: ' + timeline + '\n' +
+                   'Budget Allocation: ' + budget + '\n\n' +
+                   'BUSINESS DRIVERS\n' +
+                   '----------------\n' +
+                   drivers + '\n\n' +
+                   'REGULATORY REQUIREMENTS\n' +
+                   '-----------------------\n' +
+                   regulatory + '\n\n' +
+                   'PRIORITY FOCUS AREAS\n' +
+                   '--------------------\n' +
+                   priorities.map(function(priority) { return '• ' + priority; }).join('\n') + '\n\n' +
+                   'PHASE 1: FOUNDATION (Months 1-6)\n' +
+                   '--------------------------------\n' +
+                   '• Establish security governance framework\n' +
+                   '• Implement basic security controls\n' +
+                   '• Conduct security awareness training\n' +
+                   '• Deploy endpoint protection solutions\n' +
+                   '• Establish incident response procedures\n\n' +
+                   'PHASE 2: ENHANCEMENT (Months 7-12)\n' +
+                   '----------------------------------\n' +
+                   '• Advanced threat detection and response\n' +
+                   '• Identity and access management improvements\n' +
+                   '• Network segmentation implementation\n' +
+                   '• Security monitoring and SIEM deployment\n' +
+                   '• Compliance framework implementation\n\n' +
+                   'PHASE 3: OPTIMIZATION (Months 13-18)\n' +
+                   '------------------------------------\n' +
+                   '• Advanced security analytics\n' +
+                   '• Threat intelligence integration\n' +
+                   '• Security automation and orchestration\n' +
+                   '• Advanced persistent threat detection\n' +
+                   '• Continuous security assessment\n\n' +
+                   'SUCCESS METRICS\n' +
+                   '---------------\n' +
+                   '• Reduction in security incidents\n' +
+                   '• Improved incident response times\n' +
+                   '• Enhanced compliance posture\n' +
+                   '• Increased security awareness scores\n' +
+                   '• Reduced vulnerability exposure\n\n' +
+                   'RECOMMENDED NEXT STEPS\n' +
+                   '----------------------\n' +
+                   '1. Secure executive sponsorship and budget approval\n' +
+                   '2. Establish cybersecurity steering committee\n' +
+                   '3. Begin Phase 1 implementation\n' +
+                   '4. Establish regular progress review meetings\n' +
+                   '5. Develop detailed project plans for each phase';
+        }
+
+        function generateMethodology() {
+            var assessmentType = document.getElementById('meth-type').value || '[Assessment Type]';
+            var framework = document.getElementById('meth-framework').value || '[Framework]';
+            var tools = document.getElementById('meth-tools').value || '[Specific Tools]';
+            var approach = document.getElementById('meth-approach').value || '[Testing Approach]';
+            var reportingFormat = document.getElementById('meth-reporting-format').value || '[Reporting Format]';
+            var considerations = document.getElementById('meth-considerations').value || '[Special Considerations]';
+
+            var phases = [];
+            if (document.getElementById('meth-planning').checked) phases.push('Planning & Reconnaissance');
+            if (document.getElementById('meth-scanning').checked) phases.push('Scanning & Enumeration');
+            if (document.getElementById('meth-gaining').checked) phases.push('Gaining Access');
+            if (document.getElementById('meth-maintaining').checked) phases.push('Maintaining Access');
+            if (document.getElementById('meth-covering').checked) phases.push('Covering Tracks');
+            if (document.getElementById('meth-reporting').checked) phases.push('Analysis & Reporting');
+
+            var toolCategories = [];
+            if (document.getElementById('meth-network').checked) toolCategories.push('Network Scanners');
+            if (document.getElementById('meth-webapp').checked) toolCategories.push('Web Application Scanners');
+            if (document.getElementById('meth-exploit').checked) toolCategories.push('Exploitation Frameworks');
+            if (document.getElementById('meth-social').checked) toolCategories.push('Social Engineering Tools');
+            if (document.getElementById('meth-wireless').checked) toolCategories.push('Wireless Testing Tools');
+
+            return 'SECURITY TESTING METHODOLOGY\n' +
+                   '============================\n\n' +
+                   'Assessment Type: ' + assessmentType.charAt(0).toUpperCase() + assessmentType.slice(1).replace('-', ' ') + '\n' +
+                   'Framework: ' + framework.toUpperCase() + '\n' +
+                   'Testing Approach: ' + approach.charAt(0).toUpperCase() + approach.slice(1).replace('-', ' ') + '\n' +
+                   'Date: ' + new Date().toLocaleDateString() + '\n\n' +
+                   'METHODOLOGY OVERVIEW\n' +
+                   '--------------------\n' +
+                   'Our security testing methodology follows industry best practices and is based on the ' + framework.toUpperCase() + ' framework. We employ a systematic approach to identify, validate, and document security vulnerabilities.\n\n' +
+                   'TESTING PHASES\n' +
+                   '--------------\n' +
+                   phases.map(function(phase, index) { return (index + 1) + '. ' + phase.toUpperCase(); }).join('\n') + '\n\n' +
+                   'TOOL CATEGORIES\n' +
+                   '---------------\n' +
+                   toolCategories.map(function(category) { return '• ' + category; }).join('\n') + '\n\n' +
+                   'SPECIFIC TOOLS\n' +
+                   '--------------\n' +
+                   tools + '\n\n' +
+                   'TESTING APPROACH DETAILS\n' +
+                   '------------------------\n' +
+                   'We will conduct this assessment using a ' + approach.replace('-', ' ') + ' approach, which means:\n\n' +
+                   (approach === 'black-box' ? '• No prior knowledge of the target systems\n• Simulates external attacker perspective\n• Focuses on publicly available information' :
+                    approach === 'gray-box' ? '• Limited knowledge provided by client\n• Balances efficiency with realism\n• Focuses on specific attack vectors' :
+                    approach === 'white-box' ? '• Full access to system documentation\n• Complete knowledge of architecture\n• Comprehensive coverage of all components' :
+                    '• Combination of testing approaches\n• Tailored to specific requirements\n• Maximizes coverage and efficiency') + '\n\n' +
+                   'REPORTING\n' +
+                   '---------\n' +
+                   'Report Format: ' + reportingFormat.charAt(0).toUpperCase() + reportingFormat.slice(1).replace('-', ' ') + '\n\n' +
+                   'Our comprehensive report will include:\n' +
+                   '• Executive summary with risk assessment\n' +
+                   '• Technical findings with evidence\n' +
+                   '• Detailed remediation recommendations\n' +
+                   '• Risk ratings based on CVSS methodology\n' +
+                   '• Appendices with technical details\n\n' +
+                   'SPECIAL CONSIDERATIONS\n' +
+                   '----------------------\n' +
+                   considerations + '\n\n' +
+                   'QUALITY ASSURANCE\n' +
+                   '-----------------\n' +
+                   '• All findings undergo peer review\n' +
+                   '• Multiple validation techniques employed\n' +
+                   '• False positive verification\n' +
+                   '• Senior analyst final review\n\n' +
+                   'COMMUNICATION PROTOCOL\n' +
+                   '----------------------\n' +
+                   '• Daily status updates to project manager\n' +
+                   '• Immediate notification of critical findings\n' +
+                   '• Weekly progress reports to stakeholders\n' +
+                   '• Emergency contact procedures established';
+        }
+
+        function generateEngagementChecklist() {
+            var company = document.getElementById('check-company').value || '[Company Name]';
+            var pm = document.getElementById('check-pm').value || '[Project Manager]';
+            var clientContact = document.getElementById('check-client-contact').value || '[Client Contact]';
+            var engagementType = document.getElementById('check-engagement-type').value || '[Engagement Type]';
+            var startDate = document.getElementById('check-start-date').value || '[Start Date]';
+            var endDate = document.getElementById('check-end-date').value || '[End Date]';
+            var value = document.getElementById('check-value').value || '[Project Value]';
+            var windows = document.getElementById('check-windows').value || '[Testing Windows]';
+            var communication = document.getElementById('check-communication').value || '[Communication Preferences]';
+            var emergency = document.getElementById('check-emergency').value || '[Emergency Contacts]';
+            var requirements = document.getElementById('check-requirements').value || '[Special Requirements]';
+
+            var deliverables = [];
+            if (document.getElementById('check-exec-summary').checked) deliverables.push('Executive Summary');
+            if (document.getElementById('check-tech-report').checked) deliverables.push('Technical Report');
+            if (document.getElementById('check-remediation').checked) deliverables.push('Remediation Plan');
+            if (document.getElementById('check-presentation').checked) deliverables.push('Executive Presentation');
+            if (document.getElementById('check-retest').checked) deliverables.push('Retest (if applicable)');
+
+            return 'SECURITY ENGAGEMENT CHECKLIST\n' +
+                   '==============================\n\n' +
+                   'CLIENT INFORMATION\n' +
+                   '------------------\n' +
+                   'Company: ' + company + '\n' +
+                   'Project Manager: ' + pm + '\n' +
+                   'Client Primary Contact: ' + clientContact + '\n' +
+                   'Engagement Type: ' + engagementType.charAt(0).toUpperCase() + engagementType.slice(1).replace('-', ' ') + '\n\n' +
+                   'PROJECT DETAILS\n' +
+                   '---------------\n' +
+                   'Start Date: ' + startDate + '\n' +
+                   'End Date: ' + endDate + '\n' +
+                   'Project Value: ' + value + '\n\n' +
+                   'TESTING SCHEDULE\n' +
+                   '----------------\n' +
+                   'Preferred Testing Windows:\n' + windows + '\n\n' +
+                   'PRE-ENGAGEMENT CHECKLIST\n' +
+                   '------------------------\n' +
+                   '□ SOW signed and executed\n' +
+                   '□ Authorization letter received\n' +
+                   '□ NDA executed (if required)\n' +
+                   '□ Insurance certificates exchanged\n' +
+                   '□ Emergency contacts established\n' +
+                   '□ Testing windows confirmed\n' +
+                   '□ Technical contacts identified\n' +
+                   '□ Scope and limitations documented\n' +
+                   '□ Payment terms agreed\n' +
+                   '□ Project team assigned\n\n' +
+                   'ENGAGEMENT EXECUTION\n' +
+                   '--------------------\n' +
+                   '□ Kick-off meeting conducted\n' +
+                   '□ Initial reconnaissance completed\n' +
+                   '□ Daily status updates provided\n' +
+                   '□ Critical findings reported immediately\n' +
+                   '□ Testing performed within authorized scope\n' +
+                   '□ Documentation maintained throughout\n' +
+                   '□ Client coordination maintained\n' +
+                   '□ Issues escalated appropriately\n' +
+                   '□ Testing completed on schedule\n' +
+                   '□ Final data collection performed\n\n' +
+                   'DELIVERABLES\n' +
+                   '------------\n' +
+                   deliverables.map(function(deliverable) { return '□ ' + deliverable; }).join('\n') + '\n\n' +
+                   'POST-ENGAGEMENT\n' +
+                   '---------------\n' +
+                   '□ Report delivered to client\n' +
+                   '□ Executive presentation scheduled\n' +
+                   '□ Questions and clarifications addressed\n' +
+                   '□ Remediation support provided\n' +
+                   '□ Retest scheduled (if applicable)\n' +
+                   '□ Final invoice submitted\n' +
+                   '□ Client feedback collected\n' +
+                   '□ Project documentation archived\n' +
+                   '□ Lessons learned documented\n' +
+                   '□ Team debrief completed\n\n' +
+                   'COMMUNICATION PLAN\n' +
+                   '------------------\n' +
+                   communication + '\n\n' +
+                   'EMERGENCY CONTACTS\n' +
+                   '------------------\n' +
+                   emergency + '\n\n' +
+                   'SPECIAL REQUIREMENTS\n' +
+                   '--------------------\n' +
+                   requirements + '\n\n' +
+                   'QUALITY ASSURANCE\n' +
+                   '-----------------\n' +
+                   '□ Peer review of findings completed\n' +
+                   '□ Technical accuracy verified\n' +
+                   '□ Report quality review performed\n' +
+                   '□ Client satisfaction survey sent\n' +
+                   '□ Project metrics collected\n' +
+                   '□ Continuous improvement noted';
+        }
+
+        // Download document function
+        function downloadDocument(content, filename) {
+            try {
+                var timestamp = new Date().toISOString().slice(0,10);
+                var fileExt = filename.endsWith('.txt') ? '' : '.txt';
+                var baseName = filename.replace('.txt', '');
+                var enhancedFilename = baseName + '_' + timestamp + fileExt;
+
+                var header = [
+                    '═'.repeat(70),
+                    'THE BACKUS AGENCY',
+                    '"Pushing buttons, so you don\'t have to."',
+                    '',
+                    'Document: ' + baseName.toUpperCase().replace(/_/g, ' '),
+                    'Generated: ' + new Date().toLocaleString(),
+                    '═'.repeat(70),
+                    ''
+                ].join('\n');
+
+                var brandedContent = header + content;
+
+                var blob = new Blob([brandedContent], { type: 'text/plain;charset=utf-8' });
+                var url = window.URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = enhancedFilename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+
+                showNotification('Downloaded ' + enhancedFilename, 'success');
+                return true;
+            } catch(error) {
+                showNotification('Download failed. Please try again.', 'error');
+                return false;
+            }
+        }
+
+        // Quick generate all documents
+        function quickGenerate() {
+            var templates = ['outreach', 'proposal', 'sow', 'authorization', 'discovery', 'energy', 'roadmap', 'methodology', 'checklist'];
+            var output = document.getElementById('quick-output');
+            output.innerHTML = '<h3>Generated Documents</h3>';
+            output.classList.remove('hidden');
+
+            templates.forEach(function(template) {
+                currentTemplate = template;
+                var saved = localStorage.getItem('template_' + template);
+
+                if (saved) {
+                    var content = '';
+                    switch(template) {
+                        case 'outreach': content = generateOutreachEmail(); break;
+                        case 'proposal': content = generateProposal(); break;
+                        case 'sow': content = generateSOW(); break;
+                        case 'authorization': content = generateAuthorization(); break;
+                        case 'discovery': content = generateDiscoveryChecklist(); break;
+                        case 'energy': content = generateEnergyAssessment(); break;
+                        case 'roadmap': content = generateSecurityRoadmap(); break;
+                        case 'methodology': content = generateMethodology(); break;
+                        case 'checklist': content = generateEngagementChecklist(); break;
+                    }
+
+                    var docDiv = document.createElement('div');
+                    docDiv.className = 'form-section mt-2';
+
+                    var title = document.createElement('h4');
+                    title.textContent = templateForms[template].title;
+
+                    var preview = document.createElement('div');
+                    preview.className = 'document-preview';
+                    preview.style.maxHeight = '300px';
+                    preview.textContent = content;
+
+                    var downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'btn btn-primary mt-1';
+                    downloadBtn.textContent = 'Download';
+                    downloadBtn.addEventListener('click', function() {
+                        downloadDocument(content, template + '.txt');
+                    });
+
+                    docDiv.appendChild(title);
+                    docDiv.appendChild(preview);
+                    docDiv.appendChild(downloadBtn);
+                    output.appendChild(docDiv);
+                }
+            });
+
+            currentTemplate = '';
+            showNotification('All documents generated successfully!', 'success');
+        }
+
+        // Export all documents
+        function exportAllDocuments() {
+            var templates = ['outreach', 'proposal', 'sow', 'authorization', 'discovery', 'energy', 'roadmap', 'methodology', 'checklist'];
+            showNotification('Starting export...', 'info');
+            var count = 0;
+            var templateIndex = 0;
+
+            function exportNext() {
+                if (templateIndex >= templates.length) {
+                    showNotification('Successfully exported ' + count + ' documents', 'success');
+                    return;
+                }
+
+                var template = templates[templateIndex];
+                var saved = localStorage.getItem('template_' + template);
+
+                if (saved) {
+                    currentTemplate = template;
+                    var content = '';
+
+                    switch(template) {
+                        case 'outreach': content = generateOutreachEmail(); break;
+                        case 'proposal': content = generateProposal(); break;
+                        case 'sow': content = generateSOW(); break;
+                        case 'authorization': content = generateAuthorization(); break;
+                        case 'discovery': content = generateDiscoveryChecklist(); break;
+                        case 'energy': content = generateEnergyAssessment(); break;
+                        case 'roadmap': content = generateSecurityRoadmap(); break;
+                        case 'methodology': content = generateMethodology(); break;
+                        case 'checklist': content = generateEngagementChecklist(); break;
+                    }
+
+                    if (content) {
+                        downloadDocument(content, template);
+                        count++;
+                    }
+                }
+
+                templateIndex++;
+                setTimeout(exportNext, 300);
+            }
+
+            exportNext();
+        }
+
+        // Clear all saved data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all saved template data?')) {
+                var templates = ['outreach', 'proposal', 'sow', 'authorization', 'discovery', 'energy', 'roadmap', 'methodology', 'checklist'];
+                templates.forEach(function(template) {
+                    localStorage.removeItem('template_' + template);
+                });
+                showNotification('All saved data cleared successfully!', 'success');
+            }
+        }
+
+        // Auto-save functionality
+        function startAutoSave() {
+            if (autoSaveTimer) clearInterval(autoSaveTimer);
+
+            autoSaveTimer = setInterval(function() {
+                if (currentTemplate) {
+                    var form = document.getElementById(currentTemplate + '-form');
+                    if (form) {
+                        var data = {};
+                        var inputs = form.querySelectorAll('input, textarea, select');
+
+                        inputs.forEach(function(input) {
+                            if (input.type === 'checkbox') {
+                                data[input.id] = input.checked;
+                            } else {
+                                data[input.id] = input.value;
+                            }
+                        });
+
+                        try {
+                            localStorage.setItem('template_' + currentTemplate, JSON.stringify(data));
+                        } catch(e) {
+                            // Silent fail
+                        }
+                    }
+                }
+            }, 30000);
+        }
+
+        // Energy sector fee calculation
+        function calculateEnergyFee() {
+            var baseFeeElement = document.getElementById('energy-base-fee');
+            var premiumElement = document.getElementById('energy-premium');
+            var totalFeeElement = document.getElementById('energy-total-fee');
+
+            if (baseFeeElement && premiumElement && totalFeeElement) {
+                var baseFeeText = baseFeeElement.value.replace(/[^0-9.]/g, '');
+                var baseAmount = parseFloat(baseFeeText) || 0;
+                var premium = parseFloat(premiumElement.value) || 0;
+
+                if (baseAmount > 0) {
+                    var totalAmount = baseAmount * (1 + premium / 100);
+                    totalFeeElement.value = '$' + totalAmount.toFixed(2);
+                }
+            }
+        }
+
+        // Event listeners setup
+        function setupEventListeners() {
+            // Navigation
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('nav-tab')) {
+                    var section = e.target.getAttribute('data-section');
+                    if (section) {
+                        switchSection(section);
+                    }
+                    return;
+                }
+
+                // Template cards
+                var card = e.target.closest('.card[data-template]');
+                if (card) {
+                    var template = card.getAttribute('data-template');
+                    if (template) {
+                        openTemplate(template);
+                    }
+                    return;
+                }
+
+                // Modal close
+                if (e.target.id === 'closeModalBtn' || e.target.classList.contains('modal-close')) {
+                    closeModal();
+                    return;
+                }
+
+                // Modal buttons
+                if (e.target.id === 'saveBtn') {
+                    saveTemplateData();
+                    return;
+                }
+
+                if (e.target.id === 'loadBtn') {
+                    loadTemplateData();
+                    return;
+                }
+
+                if (e.target.id === 'generateBtn') {
+                    generateTemplate();
+                    return;
+                }
+
+                // Quick generator buttons
+                if (e.target.id === 'quickGenerateBtn') {
+                    quickGenerate();
+                    return;
+                }
+
+                if (e.target.id === 'exportAllBtn') {
+                    exportAllDocuments();
+                    return;
+                }
+
+                if (e.target.id === 'clearAllBtn') {
+                    clearAllData();
+                    return;
+                }
+
+                // Close modal when clicking outside
+                if (e.target.id === 'templateModal') {
+                    closeModal();
+                    return;
+                }
+            });
+
+            // Energy calculation
+            document.addEventListener('input', function(e) {
+                if (e.target.id === 'energy-base-fee' || e.target.id === 'energy-premium') {
+                    calculateEnergyFee();
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                setupEventListeners();
+                startAutoSave();
+                showNotification('Backus Agency Security Portal ready', 'success');
+            } catch(e) {
+                showNotification('Initialization error: ' + e.message, 'error');
+            }
+        });
+    </script>
+    <script src="/js/formspree-dual-handler.js"></script>
+</body>
+</html>

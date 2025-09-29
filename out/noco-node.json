@@ -1,0 +1,44 @@
+{
+  "parameters": {
+    "operation": "create",
+    "projectId": {
+      "__rl": true,
+      "value": "YOUR_PROJECT_ID",
+      "mode": "list",
+      "cachedResultName": "YOUR_PROJECT_NAME"
+    },
+    "table": {
+      "__rl": true,
+      "value": "YOUR_TABLE_ID",
+      "mode": "list",
+      "cachedResultName": "form_submissions"
+    },
+    "options": {
+      "columns": {
+        "parameters": {
+          "firstName": "={{$json.firstName}}",
+          "lastName": "={{$json.lastName}}",
+          "email": "={{$json.email}}",
+          "phone": "={{$json.phone}}",
+          "subject": "={{$json.subject}}",
+          "message": "={{$json.message}}",
+          "submitted_at": "={{$json.submitted_at}}",
+          "form_type": "={{$json.form_type}}"
+        }
+      }
+    }
+  },
+  "name": "NocoDB - Create Form Submission",
+  "type": "n8n-nodes-base.nocoDb",
+  "typeVersion": 1,
+  "position": [
+    980,
+    300
+  ],
+  "credentials": {
+    "nocoDbApi": {
+      "id": "YOUR_CREDENTIALS_ID",
+      "name": "NocoDB API"
+    }
+  }
+}

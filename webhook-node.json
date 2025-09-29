@@ -1,0 +1,40 @@
+{
+  "parameters": {
+    "options": {
+      "allowUnauthorizedCerts": true,
+      "responseData": "responseNode",
+      "responseMode": "responseNode",
+      "responseCode": 200,
+      "responseContentType": "application/json",
+      "responseData": "success",
+      "responseHeaders": {
+        "values": [
+          {
+            "name": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "name": "Access-Control-Allow-Methods",
+            "value": "POST, OPTIONS"
+          },
+          {
+            "name": "Access-Control-Allow-Headers",
+            "value": "Content-Type"
+          }
+        ]
+      }
+    },
+    "httpMethod": "POST",
+    "path": "form_filled",
+    "webhookSuffix": "",
+    "authentication": "none"
+  },
+  "name": "Form Webhook",
+  "type": "n8n-nodes-base.webhook",
+  "typeVersion": 1,
+  "position": [
+    760,
+    300
+  ],
+  "webhookId": "ff5a7adf-0a16-45dd-8095-8aca7a5a1a99"
+}

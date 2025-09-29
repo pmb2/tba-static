@@ -1,0 +1,141 @@
+{
+  "name": "Form Submission to NocoDB",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "responseMode": "responseNode",
+          "responseCode": 200,
+          "responseContentType": "application/json",
+          "responseData": "success",
+          "responseHeaders": {
+            "values": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        },
+        "httpMethod": "POST",
+        "path": "form_filled",
+        "webhookSuffix": "",
+        "authentication": "none"
+      },
+      "id": "72f75d36-e1f5-4f71-8234-e45f7cdb9c23",
+      "name": "Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        760,
+        300
+      ],
+      "webhookId": "ff5a7adf-0a16-45dd-8095-8aca7a5a1a99"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "projectId": {
+          "__rl": true,
+          "value": "YOUR_PROJECT_ID",
+          "mode": "list",
+          "cachedResultName": "YOUR_PROJECT_NAME"
+        },
+        "table": {
+          "__rl": true,
+          "value": "YOUR_TABLE_ID",
+          "mode": "list",
+          "cachedResultName": "form_submissions"
+        },
+        "options": {
+          "columns": {
+            "parameters": {
+              "firstName": "={{$json.firstName}}",
+              "lastName": "={{$json.lastName}}",
+              "email": "={{$json.email}}",
+              "phone": "={{$json.phone || ''}}",
+              "subject": "={{$json.subject || ''}}",
+              "message": "={{$json.message || ''}}",
+              "submitted_at": "={{$json.submitted_at}}",
+              "form_type": "={{$json.form_type}}"
+            }
+          }
+        }
+      },
+      "id": "98a6e4b2-7c51-4dfc-81d5-3f2b856e8a9d",
+      "name": "NocoDB - Create Form Submission",
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 1,
+      "position": [
+        980,
+        300
+      ],
+      "credentials": {
+        "nocoDbApi": {
+          "id": "YOUR_CREDENTIALS_ID",
+          "name": "NocoDB API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 200
+        },
+        "respondWith": "json",
+        "responseData": {
+          "message": "Form submission received successfully"
+        }
+      },
+      "id": "f8d0b6c1-7e2f-4c5a-a3b7-8e25d9f1e3a2",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "NocoDB - Create Form Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB - Create Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "12345678-1234-1234-1234-123456789012",
+  "id": "23456789-2345-2345-2345-234567890123",
+  "meta": {
+    "instanceId": "34567890-3456-3456-3456-345678901234"
+  },
+  "tags": []
+}

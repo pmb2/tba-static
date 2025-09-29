@@ -310,19 +310,19 @@
   function initialize() {
     logToTestDiv('Form test initialized', 'info');
     
-    // Add a test button to manually trigger tests
-    const button = document.createElement('button');
-    button.textContent = 'Test Submission Methods';
-    button.style.position = 'fixed';
-    button.style.bottom = '420px';  // Position above the test results div
-    button.style.right = '10px';
-    button.style.padding = '5px 10px';
-    button.style.backgroundColor = '#4a90e2';
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.borderRadius = '5px';
-    button.style.cursor = 'pointer';
-    button.style.zIndex = '9999';
+    // // Add a test button to manually trigger tests
+    // const button = document.createElement('button');
+    // button.textContent = 'Test Submission Methods';
+    // button.style.position = 'fixed';
+    // button.style.bottom = '420px';  // Position above the test results div
+    // button.style.right = '10px';
+    // button.style.padding = '5px 10px';
+    // button.style.backgroundColor = '#4a90e2';
+    // button.style.color = 'white';
+    // button.style.border = 'none';
+    // button.style.borderRadius = '5px';
+    // button.style.cursor = 'pointer';
+    // button.style.zIndex = '9999';
     
     button.addEventListener('click', function() {
       testAllSubmissionMethods();

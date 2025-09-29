@@ -1,0 +1,111 @@
+{
+  "projectId": "2837001675602918616",
+  "deployKey": "033c22f1a3ca4a5d990c60b88367cab4",
+  "forms": {
+    "universal_form": {
+      "name": "The Backus Agency Universal Form",
+      "fields": {
+        "_subject": {
+          "type": "text",
+          "required": false
+        },
+        "form_type": {
+          "type": "text",
+          "required": false
+        },
+        "full_name": {
+          "type": "text",
+          "required": false
+        },
+        "first_name": {
+          "type": "text",
+          "required": false
+        },
+        "last_name": {
+          "type": "text",
+          "required": false
+        },
+        "email": {
+          "type": "email",
+          "required": true
+        },
+        "company": {
+          "type": "text",
+          "required": false
+        },
+        "phone": {
+          "type": "text",
+          "required": false
+        },
+        "phone_number": {
+          "type": "text",
+          "required": false
+        },
+        "subject": {
+          "type": "text",
+          "required": false
+        },
+        "message": {
+          "type": "text",
+          "required": false
+        },
+        "project_details": {
+          "type": "text",
+          "required": false
+        },
+        "budget_range": {
+          "type": "text",
+          "required": false
+        },
+        "preferred_plan": {
+          "type": "text",
+          "required": false
+        },
+        "referral_source": {
+          "type": "text",
+          "required": false
+        },
+        "industry": {
+          "type": "text",
+          "required": false
+        },
+        "company_size": {
+          "type": "text",
+          "required": false
+        },
+        "maturity_level": {
+          "type": "text",
+          "required": false
+        },
+        "timeline": {
+          "type": "text",
+          "required": false
+        },
+        "services": {
+          "type": "text",
+          "required": false
+        },
+        "concerns": {
+          "type": "text",
+          "required": false
+        },
+        "assessment_score": {
+          "type": "numeric",
+          "required": false
+        },
+        "consultation": {
+          "type": "text",
+          "required": false
+        },
+        "source_url": {
+          "type": "text",
+          "required": false
+        },
+        "timestamp": {
+          "type": "text",
+          "required": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "tba-static",
+  "version": "1.0.0",
+  "description": "This is the static website for The Backus Agency, built with Next.js and deployed to GitHub Pages.",
+  "main": "form-fixer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pmb2/tba-static.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pmb2/tba-static/issues"
+  },
+  "homepage": "https://github.com/pmb2/tba-static#readme",
+  "devDependencies": {
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.55.1",
+    "pngjs": "^7.0.0"
+  }
+}

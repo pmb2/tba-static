@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports:
+      - "5678:5678"  # Using port 5678 by default
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin
+      - N8N_BASIC_AUTH_PASSWORD=CHANGE_ME  # <-- Change this to a secure password
+      - N8N_HOST=n8n.backus.agency
+      - N8N_PROTOCOL=https
+      - N8N_PORT=443  # External port that users will use
+      - N8N_ENCRYPTION_KEY=CHANGE_ME_RANDOM_STRING  # <-- Generate a random string
+      - NODE_ENV=production
+      - N8N_SSL_CERT=/home/node/.n8n/certs/fullchain.pem
+      - N8N_SSL_KEY=/home/node/.n8n/certs/privkey.pem
+      - TZ=America/New_York  # <-- Set to your timezone
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /etc/letsencrypt/live/n8n.backus.agency:/home/node/.n8n/certs:ro
+
+  # Optional: Database (PostgreSQL recommended for production)
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=CHANGE_ME  # <-- Change this to a secure password
+      - POSTGRES_DB=n8n
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Only allow n8n service to connect to PostgreSQL
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Redis for improved performance
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: --requirepass CHANGE_ME  # <-- Change this to a secure password
+    # Only allow n8n service to connect to Redis
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  n8n_data:
+  postgres_data:
+  redis_data:
+
+# Add a separate network to isolate services
+networks:
+  default:
+    driver: bridge

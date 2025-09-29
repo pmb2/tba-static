@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n SSL Test Form</title>
+    <script src="/form-fixer.js"></script>
+    <script src="/path-fixer.js"></script>
+    <script src="/js/form-interceptor.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .test-buttons button {
+            flex: 1;
+        }
+        #sslCheck {
+            background-color: #007bff;
+        }
+        #sslCheck:hover {
+            background-color: #0069d9;
+        }
+        code {
+            display: block;
+            white-space: pre-wrap;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>n8n SSL Test Form</h1>
+    
+    <div class="test-buttons">
+        <button id="sslCheck">Check SSL Certificate</button>
+        <button id="interceptTest" type="button">Test Form Interception</button>
+    </div>
+
+    <h2>Contact Form Test</h2>
+    <form id="testForm">
+        <div class="form-group">
+            <label for="firstName">First Name*</label>
+            <input type="text" id="firstName" name="firstName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="lastName">Last Name*</label>
+            <input type="text" id="lastName" name="lastName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email*</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone">
+        </div>
+        
+        <div class="form-group">
+            <label for="subject">Subject*</label>
+            <select id="subject" name="subject" required>
+                <option value="">Select a subject</option>
+                <option value="general">General Inquiry</option>
+                <option value="sales">Sales</option>
+                <option value="support">Support</option>
+                <option value="partnership">Partnership</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="message">Message*</label>
+            <textarea id="message" name="message" required></textarea>
+        </div>
+        
+        <button type="submit">Submit Test Form</button>
+    </form>
+    
+    <div id="response" class="response"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const n8nUrl = 'https://n8n.backus.agency/webhook/form_filled';
+            const testForm = document.getElementById('testForm');
+            const responseDiv = document.getElementById('response');
+            const sslCheckBtn = document.getElementById('sslCheck');
+            
+            // Test Form Interception Button
+            const interceptTestBtn = document.getElementById('interceptTest');
+            interceptTestBtn.addEventListener('click', function() {
+                responseDiv.innerHTML = 'Testing form interception...';
+                responseDiv.className = 'response';
+                responseDiv.style.display = 'block';
+                
+                // Collect form data
+                const formData = {
+                    firstName: document.getElementById('firstName').value || 'Test',
+                    lastName: document.getElementById('lastName').value || 'User',
+                    email: document.getElementById('email').value || 'test@example.com',
+                    phone: document.getElementById('phone').value || '555-123-4567',
+                    subject: document.getElementById('subject').value || 'test',
+                    message: document.getElementById('message').value || 'This is a test of the form interception system.',
+                    submitted_at: new Date().toISOString(),
+                    form_type: 'interception_test'
+                };
+                
+                // Attempt to submit to forms.gle (this should be intercepted)
+                fetch('https://forms.gle/testFormSubmission123456', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                })
+                .then(response => {
+                    return response.json().then(data => {
+                        responseDiv.innerHTML = `<strong>Interception Test Result:</strong><br>
+                            Form interception appears to be working!<br><br>
+                            <strong>Server Response:</strong><code>${JSON.stringify(data, null, 2)}</code>`;
+                        responseDiv.className = 'response success';
+                    }).catch(error => {
+                        responseDiv.innerHTML = `<strong>Interception Test Error:</strong><br>
+                            The interception might have worked, but there was an error parsing the response: ${error.message}`;
+                        responseDiv.className = 'response error';
+                    });
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = `<strong>Interception Test Error:</strong><br>
+                        Error during fetch: ${error.message}<br>
+                        This might indicate that the interception did not work correctly.`;
+                    responseDiv.className = 'response error';
+                });
+            });
+            
+            // SSL Check Button
+            sslCheckBtn.addEventListener('click', function() {
+                responseDiv.innerHTML = 'Checking SSL certificate...';
+                responseDiv.className = 'response';
+                responseDiv.style.display = 'block';
+                
+                fetch(n8nUrl.replace('/webhook/form_filled', ''), {
+                    method: 'HEAD'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        let securityInfo = '';
+                        
+                        // Check if connection is secure
+                        if (window.location.protocol === 'https:' || n8nUrl.startsWith('https://')) {
+                            securityInfo = 'Connection is secure (HTTPS)';
+                        } else {
+                            securityInfo = 'Warning: Connection is not secure (HTTP)';
+                        }
+                        
+                        responseDiv.innerHTML = `<strong>SSL Check Result:</strong><br>
+                            Successfully connected to the n8n server.<br>
+                            ${securityInfo}<br><br>
+                            To view certificate details, click the padlock icon in your browser's address bar when visiting:<br>
+                            <a href="${n8nUrl.replace('/webhook/form_filled', '')}" target="_blank">${n8nUrl.replace('/webhook/form_filled', '')}</a>`;
+                        responseDiv.className = 'response success';
+                    } else {
+                        responseDiv.innerHTML = `<strong>SSL Check Error:</strong><br>
+                            Received response code ${response.status} from server.`;
+                        responseDiv.className = 'response error';
+                    }
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = `<strong>SSL Check Error:</strong><br>
+                        Could not connect to the n8n server. Error: ${error.message}`;
+                    responseDiv.className = 'response error';
+                });
+            });
+            
+            // Form Submission
+            testForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Collect form data
+                const formData = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    subject: document.getElementById('subject').value,
+                    message: document.getElementById('message').value,
+                    submitted_at: new Date().toISOString(),
+                    form_type: 'test'
+                };
+                
+                responseDiv.innerHTML = 'Submitting form...';
+                responseDiv.className = 'response';
+                responseDiv.style.display = 'block';
+                
+                // Submit to n8n webhook
+                fetch(n8nUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json().then(data => {
+                            responseDiv.innerHTML = `<strong>Success!</strong><br>
+                                Form data was submitted successfully.<br><br>
+                                <strong>Server Response:</strong><code>${JSON.stringify(data, null, 2)}</code>`;
+                            responseDiv.className = 'response success';
+                            testForm.reset();
+                        });
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(`Server responded with status ${response.status}: ${text}`);
+                        });
+                    }
+                })
+                .catch(error => {
+                    responseDiv.innerHTML = `<strong>Submission Error:</strong><br>${error.message}`;
+                    responseDiv.className = 'response error';
+                });
+            });
+        });
+    </script>
+
+<script src="/js/security-theme.js"></script></body>
+</html>
