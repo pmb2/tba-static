@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Assessment Viewer - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            color: #dc2626;
+            font-size: 2rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: #1a1a1a;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #999;
+            margin-top: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #b91c1c;
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .assessments-table {
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #0f0f0f;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #dc2626;
+            border-bottom: 2px solid #333;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #222;
+        }
+
+        tr:hover {
+            background: #222;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .status-new {
+            background: #dc2626;
+            color: white;
+        }
+
+        .status-viewed {
+            background: #333;
+            color: white;
+        }
+
+        .status-contacted {
+            background: #10b981;
+            color: white;
+        }
+
+        .details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .details-modal.active {
+            display: block;
+        }
+
+        .modal-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid #333;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .detail-section {
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h3 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1rem;
+        }
+
+        .detail-label {
+            color: #999;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: white;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .export-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .tag.active {
+            background: #dc2626;
+            border-color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Security Assessment Viewer</h1>
+            <div>
+                <span id="lastUpdate" style="color: #666;">Last update: Never</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Assessments</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="todayCount">0</div>
+                <div class="stat-label">Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="weekCount">0</div>
+                <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgScore">0</div>
+                <div class="stat-label">Avg Score</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="loadAssessments()">
+                🔄 Refresh
+            </button>
+            <button class="btn btn-secondary" onclick="exportAll()">
+                📥 Export All
+            </button>
+            <button class="btn btn-secondary" onclick="clearFilters()">
+                ❌ Clear Filters
+            </button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by company, email, or ID..." onkeyup="filterAssessments()">
+            </div>
+        </div>
+
+        <div class="filter-tags">
+            <div class="tag" onclick="toggleFilter('industry', 'healthcare')">Healthcare</div>
+            <div class="tag" onclick="toggleFilter('industry', 'finance')">Finance</div>
+            <div class="tag" onclick="toggleFilter('industry', 'technology')">Technology</div>
+            <div class="tag" onclick="toggleFilter('timeline', 'immediate')">Urgent</div>
+            <div class="tag" onclick="toggleFilter('maturity', 'initial')">Just Starting</div>
+        </div>
+
+        <div class="assessments-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Company</th>
+                        <th>Contact</th>
+                        <th>Industry</th>
+                        <th>Score</th>
+                        <th>Timeline</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="assessmentsList">
+                    <tr>
+                        <td colspan="8" class="no-data">No assessments found. Data will appear here once submissions are received.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="export-section">
+            <h3 style="color: #dc2626; margin-bottom: 1rem;">Data Management</h3>
+            <button class="btn btn-secondary" onclick="downloadBackup()">
+                💾 Download Backup
+            </button>
+            <button class="btn btn-secondary" onclick="importData()">
+                📤 Import Data
+            </button>
+            <button class="btn btn-secondary" onclick="generateReport()">
+                📊 Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="details-modal" id="detailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Assessment Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allAssessments = [];
+        let filteredAssessments = [];
+        let activeFilters = {};
+
+        // Load assessments from storage
+        function loadAssessments() {
+            try {
+                // Load from localStorage (primary storage)
+                let localData = [];
+                const stored = localStorage.getItem('security_assessments');
+                if (stored) {
+                    try {
+                        localData = JSON.parse(stored);
+                        if (!Array.isArray(localData)) {
+                            localData = [];
+                        }
+                    } catch (e) {
+                        console.error('Error parsing stored data:', e);
+                        localData = [];
+                    }
+                }
+
+                // Use localStorage data
+                allAssessments = localData;
+
+                // Sort by date (newest first)
+                allAssessments.sort((a, b) => {
+                    const dateA = new Date(b.submittedAt || b.assessmentDate || 0);
+                    const dateB = new Date(a.submittedAt || a.assessmentDate || 0);
+                    return dateA - dateB;
+                });
+
+                filteredAssessments = [...allAssessments];
+                updateDisplay();
+                updateStats();
+
+                // Update last update time
+                document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleString();
+            } catch (error) {
+                console.error('Error loading assessments:', error);
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            const tbody = document.getElementById('assessmentsList');
+
+            if (filteredAssessments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">No assessments found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filteredAssessments.map(assessment => {
+                const date = new Date(assessment.submittedAt || assessment.assessmentDate);
+                const status = getStatus(assessment);
+
+                return `
+                    <tr>
+                        <td>${date.toLocaleDateString()}</td>
+                        <td><strong>${assessment.companyName || 'N/A'}</strong></td>
+                        <td>${assessment.contactName || 'N/A'}<br><small>${assessment.contactEmail || 'N/A'}</small></td>
+                        <td>${assessment.industry || 'N/A'}</td>
+                        <td>${assessment.assessmentScore || 0}</td>
+                        <td>${assessment.timeline || 'N/A'}</td>
+                        <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewDetails('${assessment.submissionId || Date.now()}')">View</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const total = allAssessments.length;
+            const today = new Date().toDateString();
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+            const todayCount = allAssessments.filter(a => {
+                const date = new Date(a.submittedAt || a.assessmentDate);
+                return date.toDateString() === today;
+            }).length;
+
+            const weekCount = allAssessments.filter(a => {
+                const date = new Date(a.submittedAt || a.assessmentDate);
+                return date >= weekAgo;
+            }).length;
+
+            const avgScore = total > 0
+                ? (allAssessments.reduce((sum, a) => sum + (a.assessmentScore || 0), 0) / total).toFixed(1)
+                : 0;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('todayCount').textContent = todayCount;
+            document.getElementById('weekCount').textContent = weekCount;
+            document.getElementById('avgScore').textContent = avgScore;
+        }
+
+        // Get status
+        function getStatus(assessment) {
+            // Check localStorage for status
+            const statusKey = `submission_${assessment.submissionId}_status`;
+            const status = localStorage.getItem(statusKey);
+
+            if (status) {
+                return JSON.parse(status).value || 'New';
+            }
+
+            return 'New';
+        }
+
+        // View details
+        function viewDetails(submissionId) {
+            const assessment = allAssessments.find(a => a.submissionId === submissionId || a.assessmentDate === submissionId);
+
+            if (!assessment) {
+                alert('Assessment not found');
+                return;
+            }
+
+            const modal = document.getElementById('detailsModal');
+            const content = document.getElementById('modalContent');
+
+            content.innerHTML = `
+                <div class="detail-section">
+                    <h3>Contact Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-label">Name:</div>
+                        <div class="detail-value">${assessment.contactName || 'N/A'}</div>
+                        <div class="detail-label">Email:</div>
+                        <div class="detail-value">${assessment.contactEmail || 'N/A'}</div>
+                        <div class="detail-label">Company:</div>
+                        <div class="detail-value">${assessment.companyName || 'N/A'}</div>
+                        <div class="detail-label">Role:</div>
+                        <div class="detail-value">${assessment.contactRole || 'N/A'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Company Profile</h3>
+                    <div class="detail-grid">
+                        <div class="detail-label">Industry:</div>
+                        <div class="detail-value">${assessment.industry || 'N/A'}</div>
+                        <div class="detail-label">Size:</div>
+                        <div class="detail-value">${assessment.companySize || 'N/A'}</div>
+                        <div class="detail-label">Maturity:</div>
+                        <div class="detail-value">${assessment.maturityLevel || 'N/A'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Security Needs</h3>
+                    <div class="detail-grid">
+                        <div class="detail-label">Concerns:</div>
+                        <div class="detail-value">${Array.isArray(assessment.concerns) ? assessment.concerns.join(', ') : (assessment.concerns || 'N/A')}</div>
+                        <div class="detail-label">Services:</div>
+                        <div class="detail-value">${Array.isArray(assessment.services) ? assessment.services.join(', ') : (assessment.services || 'N/A')}</div>
+                        <div class="detail-label">Timeline:</div>
+                        <div class="detail-value">${assessment.timeline || 'N/A'}</div>
+                        <div class="detail-label">Budget:</div>
+                        <div class="detail-value">${assessment.budget || 'N/A'}</div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Additional Information</h3>
+                    <div class="detail-grid">
+                        <div class="detail-label">Context:</div>
+                        <div class="detail-value">${assessment.additionalContext || 'N/A'}</div>
+                        <div class="detail-label">Consultation:</div>
+                        <div class="detail-value">${assessment.scheduleConsultation || 'N/A'}</div>
+                        <div class="detail-label">Score:</div>
+                        <div class="detail-value">${assessment.assessmentScore || 0}</div>
+                        <div class="detail-label">Submitted:</div>
+                        <div class="detail-value">${new Date(assessment.submittedAt || assessment.assessmentDate).toLocaleString()}</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <button class="btn btn-primary" onclick="markAsContacted('${submissionId}')">Mark as Contacted</button>
+                    <button class="btn btn-secondary" onclick="exportSingle('${submissionId}')">Export</button>
+                </div>
+            `;
+
+            modal.classList.add('active');
+
+            // Mark as viewed
+            const statusKey = `submission_${submissionId}_status`;
+            localStorage.setItem(statusKey, JSON.stringify({
+                value: 'Viewed',
+                timestamp: new Date().toISOString()
+            }));
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+
+        // Filter assessments
+        function filterAssessments() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredAssessments = allAssessments.filter(assessment => {
+                // Search filter
+                const matchesSearch = !searchTerm ||
+                    (assessment.companyName && assessment.companyName.toLowerCase().includes(searchTerm)) ||
+                    (assessment.contactEmail && assessment.contactEmail.toLowerCase().includes(searchTerm)) ||
+                    (assessment.contactName && assessment.contactName.toLowerCase().includes(searchTerm)) ||
+                    (assessment.submissionId && assessment.submissionId.toLowerCase().includes(searchTerm));
+
+                // Active filters
+                let matchesFilters = true;
+                for (const [key, value] of Object.entries(activeFilters)) {
+                    if (assessment[key] !== value) {
+                        matchesFilters = false;
+                        break;
+                    }
+                }
+
+                return matchesSearch && matchesFilters;
+            });
+
+            updateDisplay();
+        }
+
+        // Toggle filter
+        function toggleFilter(key, value) {
+            const tags = document.querySelectorAll('.tag');
+
+            if (activeFilters[key] === value) {
+                delete activeFilters[key];
+            } else {
+                activeFilters[key] = value;
+            }
+
+            // Update tag styles
+            tags.forEach(tag => {
+                tag.classList.remove('active');
+                const onclick = tag.getAttribute('onclick');
+                for (const [k, v] of Object.entries(activeFilters)) {
+                    if (onclick && onclick.includes(`'${k}', '${v}'`)) {
+                        tag.classList.add('active');
+                    }
+                }
+            });
+
+            filterAssessments();
+        }
+
+        // Clear filters
+        function clearFilters() {
+            activeFilters = {};
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('active'));
+            filteredAssessments = [...allAssessments];
+            updateDisplay();
+        }
+
+        // Export all
+        function exportAll() {
+            const blob = new Blob([JSON.stringify(allAssessments, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security_assessments_export_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Export single
+        function exportSingle(submissionId) {
+            const assessment = allAssessments.find(a => a.submissionId === submissionId);
+
+            if (!assessment) return;
+
+            const blob = new Blob([JSON.stringify(assessment, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `assessment_${assessment.companyName}_${submissionId}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Mark as contacted
+        function markAsContacted(submissionId) {
+            const statusKey = `submission_${submissionId}_status`;
+            localStorage.setItem(statusKey, JSON.stringify({
+                value: 'Contacted',
+                timestamp: new Date().toISOString()
+            }));
+
+            alert('Marked as contacted');
+            closeModal();
+            loadAssessments();
+        }
+
+        // Download backup
+        function downloadBackup() {
+            const backup = {
+                assessments: allAssessments,
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    totalCount: allAssessments.length,
+                    version: '1.0'
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(backup, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security_assessments_backup_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import data
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        const assessments = data.assessments || data;
+
+                        // Merge with existing data
+                        const existingIds = new Set(allAssessments.map(a => a.submissionId));
+                        const newAssessments = assessments.filter(a => !existingIds.has(a.submissionId));
+
+                        if (newAssessments.length > 0) {
+                            // Save to localStorage
+                            const combined = [...allAssessments, ...newAssessments];
+                            localStorage.setItem('security_assessments', JSON.stringify(combined));
+
+                            alert(`Imported ${newAssessments.length} new assessments`);
+                            loadAssessments();
+                        } else {
+                            alert('No new assessments to import');
+                        }
+                    } catch (error) {
+                        alert('Error importing file: ' + error.message);
+                    }
+                };
+
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+
+        // Generate report
+        function generateReport() {
+            const report = {
+                generatedAt: new Date().toISOString(),
+                totalAssessments: allAssessments.length,
+                byIndustry: {},
+                byTimeline: {},
+                byMaturity: {},
+                averageScore: 0,
+                topConcerns: {},
+                topServices: {}
+            };
+
+            // Analyze data
+            allAssessments.forEach(assessment => {
+                // By industry
+                const industry = assessment.industry || 'Unknown';
+                report.byIndustry[industry] = (report.byIndustry[industry] || 0) + 1;
+
+                // By timeline
+                const timeline = assessment.timeline || 'Unknown';
+                report.byTimeline[timeline] = (report.byTimeline[timeline] || 0) + 1;
+
+                // By maturity
+                const maturity = assessment.maturityLevel || 'Unknown';
+                report.byMaturity[maturity] = (report.byMaturity[maturity] || 0) + 1;
+
+                // Concerns
+                if (assessment.concerns) {
+                    const concerns = Array.isArray(assessment.concerns) ? assessment.concerns : [assessment.concerns];
+                    concerns.forEach(concern => {
+                        report.topConcerns[concern] = (report.topConcerns[concern] || 0) + 1;
+                    });
+                }
+
+                // Services
+                if (assessment.services) {
+                    const services = Array.isArray(assessment.services) ? assessment.services : [assessment.services];
+                    services.forEach(service => {
+                        report.topServices[service] = (report.topServices[service] || 0) + 1;
+                    });
+                }
+            });
+
+            // Calculate average score
+            const totalScore = allAssessments.reduce((sum, a) => sum + (a.assessmentScore || 0), 0);
+            report.averageScore = allAssessments.length > 0 ? (totalScore / allAssessments.length).toFixed(2) : 0;
+
+            // Download report
+            const blob = new Blob([JSON.stringify(report, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security_assessment_report_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('Report generated successfully');
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAssessments();
+
+            // Auto-refresh every 30 seconds
+            setInterval(loadAssessments, 30000);
+        });
+
+        // Close modal on escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

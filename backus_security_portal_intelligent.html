@@ -959,6 +959,9 @@
         </div>
     </div>
 
+    <!-- Simple Assessment Handler - Production Ready -->
+    <script src="js/security-assessment-simple.js"></script>
+
     <script>
         // State Management
         var currentPage = 1;
@@ -1341,11 +1344,14 @@
             // Calculate assessment score
             assessmentData.assessmentScore = calculateAssessmentScore();
 
-            // Send to Formspree
-            sendToFormspree();
-
-            // Save locally
-            localStorage.setItem('assessment_' + Date.now(), JSON.stringify(assessmentData));
+            // Use simple submission that always works
+            if (window.submitAssessmentSimple) {
+                var result = window.submitAssessmentSimple(assessmentData);
+                console.log('Assessment submitted:', result.submissionId);
+            } else {
+                // Fallback to original Formspree method
+                sendToFormspree();
+            }
 
             // Show success page
             currentPage = 7;
