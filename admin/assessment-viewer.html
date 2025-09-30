@@ -3,7 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Assessment Viewer - Admin Dashboard</title>
+    <title>Security Assessment Dashboard</title>
+    <script>
+        // Authentication check
+        (function() {
+            const sessionKey = 'admin_session_token';
+            const session = localStorage.getItem(sessionKey);
+
+            if (!session) {
+                // No session, redirect to login
+                window.location.href = '/admin/';
+                return;
+            }
+
+            try {
+                const sessionData = JSON.parse(session);
+                const now = Date.now();
+
+                if (sessionData.expiry < now) {
+                    // Session expired
+                    localStorage.removeItem(sessionKey);
+                    alert('Session expired. Please login again.');
+                    window.location.href = '/admin/';
+                    return;
+                }
+
+                // Valid session - store user info
+                window.currentUser = sessionData;
+            } catch (e) {
+                // Invalid session data
+                localStorage.removeItem(sessionKey);
+                window.location.href = '/admin/';
+            }
+        })();
+    </script>
     <style>
         * {
             margin: 0;
@@ -294,9 +327,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ Security Assessment Viewer</h1>
-            <div>
+            <h1>🛡️ Security Assessment Dashboard</h1>
+            <div style="display: flex; align-items: center; gap: 2rem;">
                 <span id="lastUpdate" style="color: #666;">Last update: Never</span>
+                <span id="userDisplay" style="color: #999; font-size: 0.9rem;"></span>
+                <button onclick="logout()" style="background: #dc2626; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem;">
+                    Logout
+                </button>
             </div>
         </div>
 
@@ -1066,12 +1103,48 @@
             }, 2000);
         }
 
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('admin_session_token');
+                window.location.href = '/admin/';
+            }
+        }
+
+        // Display current user
+        function displayUser() {
+            if (window.currentUser) {
+                const userDisplay = document.getElementById('userDisplay');
+                if (userDisplay) {
+                    userDisplay.textContent = `Logged in as: ${window.currentUser.username}`;
+                }
+            }
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
+            displayUser();
             loadAssessments();
 
             // Auto-refresh every 30 seconds
-            setInterval(loadAssessments, 30000);
+            setInterval(() => {
+                // Check session validity
+                const session = localStorage.getItem('admin_session_token');
+                if (session) {
+                    try {
+                        const sessionData = JSON.parse(session);
+                        if (sessionData.expiry < Date.now()) {
+                            alert('Session expired. Please login again.');
+                            window.location.href = '/admin/';
+                            return;
+                        }
+                    } catch (e) {
+                        window.location.href = '/admin/';
+                        return;
+                    }
+                }
+                loadAssessments();
+            }, 30000);
         });
 
         // Close modals on escape

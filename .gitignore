@@ -1,0 +1,28 @@
+# Sensitive files
+ADMIN_CREDENTIALS.md
+admin_credentials.txt
+credentials.json
+.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.backup
+*.bak
+
+# Local configuration
+config.local.js
+settings.local.json
