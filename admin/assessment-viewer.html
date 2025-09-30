@@ -408,6 +408,9 @@
             <button class="btn btn-secondary" onclick="generateReport()">
                 📊 Generate Report
             </button>
+            <button class="btn btn-primary" onclick="syncToCloud()" style="background: #10b981;">
+                ☁️ Sync to Cloud
+            </button>
         </div>
     </div>
 
@@ -424,31 +427,41 @@
         </div>
     </div>
 
+    <!-- Load JSONBin cloud storage handler -->
+    <script src="../js/security-assessment-jsonbin.js"></script>
+
     <script>
         let allAssessments = [];
         let filteredAssessments = [];
         let activeFilters = {};
 
-        // Load assessments from storage
-        function loadAssessments() {
+        // Load assessments from both local and cloud storage
+        async function loadAssessments() {
             try {
-                // Load from localStorage (primary storage)
-                let localData = [];
-                const stored = localStorage.getItem('security_assessments');
-                if (stored) {
-                    try {
-                        localData = JSON.parse(stored);
-                        if (!Array.isArray(localData)) {
+                // Show loading indicator
+                document.getElementById('assessmentsList').innerHTML = '<p style="text-align: center; padding: 2rem;">Loading assessments from cloud...</p>';
+
+                // Try to load from cloud first (if getAllAssessments function exists)
+                if (typeof window.getAllAssessments === 'function') {
+                    allAssessments = await window.getAllAssessments();
+                    console.log('Loaded', allAssessments.length, 'assessments from cloud and local storage');
+                } else {
+                    // Fallback to local storage only
+                    let localData = [];
+                    const stored = localStorage.getItem('security_assessments');
+                    if (stored) {
+                        try {
+                            localData = JSON.parse(stored);
+                            if (!Array.isArray(localData)) {
+                                localData = [];
+                            }
+                        } catch (e) {
+                            console.error('Error parsing stored data:', e);
                             localData = [];
                         }
-                    } catch (e) {
-                        console.error('Error parsing stored data:', e);
-                        localData = [];
                     }
+                    allAssessments = localData;
                 }
-
-                // Use localStorage data
-                allAssessments = localData;
 
                 // Sort by date (newest first)
                 allAssessments.sort((a, b) => {
@@ -746,7 +759,7 @@
         }
 
         // Delete assessment with confirmation
-        function deleteAssessment(submissionId) {
+        async function deleteAssessment(submissionId) {
             const assessment = allAssessments.find(a => a.submissionId === submissionId || a.assessmentDate === submissionId);
 
             if (!assessment) {
@@ -770,6 +783,14 @@
             }
 
             try {
+                // Delete from cloud storage first
+                if (typeof window.deleteAssessmentFromCloud === 'function') {
+                    const cloudDeleted = await window.deleteAssessmentFromCloud(submissionId);
+                    if (cloudDeleted) {
+                        console.log('Deleted from cloud storage');
+                    }
+                }
+
                 // Remove from localStorage
                 const assessments = JSON.parse(localStorage.getItem('security_assessments') || '[]');
                 const updatedAssessments = assessments.filter(a =>
@@ -865,6 +886,31 @@
             };
 
             input.click();
+        }
+
+        // Sync local data to cloud
+        async function syncToCloud() {
+            if (typeof window.syncLocalToCloud === 'function') {
+                const button = event.target;
+                button.disabled = true;
+                button.textContent = 'Syncing...';
+
+                try {
+                    const synced = await window.syncLocalToCloud();
+                    alert(`Successfully synced ${synced} assessments to cloud storage`);
+
+                    // Reload to show updated data
+                    await loadAssessments();
+                } catch (error) {
+                    console.error('Sync error:', error);
+                    alert('Failed to sync to cloud. Please try again.');
+                } finally {
+                    button.disabled = false;
+                    button.textContent = '☁️ Sync to Cloud';
+                }
+            } else {
+                alert('Cloud sync not available. Please refresh the page.');
+            }
         }
 
         // Generate report

@@ -1,0 +1,37 @@
+name: Save Assessment Data
+
+on:
+  repository_dispatch:
+    types: [save-assessment]
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update assessments file
+        run: |
+          echo '${{ github.event.client_payload.data }}' | jq '.' > temp_assessment.json
+
+          # Read existing assessments
+          if [ -f api/assessments.json ]; then
+            jq '. + [input]' api/assessments.json temp_assessment.json > updated_assessments.json
+          else
+            jq '[.]' temp_assessment.json > updated_assessments.json
+          fi
+
+          # Keep only last 100 assessments
+          jq '.[-100:]' updated_assessments.json > api/assessments.json
+
+          rm temp_assessment.json updated_assessments.json
+
+      - name: Commit and push
+        run: |
+          git config --global user.name "Assessment Bot"
+          git config --global user.email "bot@backus.agency"
+          git add api/assessments.json
+          git commit -m "Add assessment from ${{ github.event.client_payload.data.companyName }}" || exit 0
+          git push
