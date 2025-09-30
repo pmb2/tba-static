@@ -150,12 +150,17 @@
         // Save to JSONBin cloud storage (async)
         saveToJsonBin(assessmentData).then(success => {
             if (success) {
-                console.log('Cloud sync successful');
+                console.log('✅ Assessment saved to cloud successfully');
                 // Update UI if needed
                 if (window.updateSyncStatus) {
                     window.updateSyncStatus('synced');
                 }
+            } else {
+                console.warn('⚠️ Cloud save failed - assessment saved locally only');
             }
+        }).catch(error => {
+            console.error('❌ Cloud save error:', error);
+            console.log('Assessment still saved locally');
         });
 
         // Send to Formspree
@@ -384,7 +389,14 @@
     console.log('Security Assessment JSONBin Cloud Handler loaded');
     console.log('Cloud storage enabled - assessments accessible from any location');
 
-    // Auto-sync on load
+    // Ensure bin exists on load
+    ensureJsonBin().then(binId => {
+        if (binId) {
+            console.log('JSONBin ready:', binId);
+        }
+    });
+
+    // Auto-sync on load for admin pages
     if (window.location.pathname.includes('admin')) {
         syncLocalToCloud();
     }

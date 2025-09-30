@@ -640,6 +640,15 @@
 
             modal.classList.add('active');
 
+            // Add click event listener to close modal when clicking outside
+            setTimeout(() => {
+                modal.onclick = function(event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                };
+            }, 100);
+
             // Mark as viewed
             const statusKey = `submission_${submissionId}_status`;
             localStorage.setItem(statusKey, JSON.stringify({
@@ -650,7 +659,9 @@
 
         // Close modal
         function closeModal() {
-            document.getElementById('detailsModal').classList.remove('active');
+            const modal = document.getElementById('detailsModal');
+            modal.classList.remove('active');
+            modal.onclick = null; // Remove the event listener
         }
 
         // Filter assessments
@@ -983,15 +994,27 @@
 
         // Generate unique link modal
         function generateUniqueLink() {
-            document.getElementById('linkModal').style.display = 'block';
+            const modal = document.getElementById('linkModal');
+            modal.style.display = 'block';
             document.getElementById('linkReference').value = '';
             document.getElementById('linkNotes').value = '';
             document.getElementById('generatedLink').style.display = 'none';
+
+            // Add click event listener to close modal when clicking outside
+            setTimeout(() => {
+                modal.onclick = function(event) {
+                    if (event.target === modal) {
+                        closeLinkModal();
+                    }
+                };
+            }, 100);
         }
 
         // Close link modal
         function closeLinkModal() {
-            document.getElementById('linkModal').style.display = 'none';
+            const modal = document.getElementById('linkModal');
+            modal.style.display = 'none';
+            modal.onclick = null; // Remove the event listener
         }
 
         // Create unique link
