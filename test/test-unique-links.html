@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Unique Links - Security Assessment</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0e27;
+            color: #e0e0e0;
+        }
+        .test-container {
+            background: rgba(15, 20, 40, 0.9);
+            border: 1px solid rgba(64, 224, 208, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #40e0d0;
+            border-bottom: 2px solid #40e0d0;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #64b5f6;
+            margin-top: 30px;
+        }
+        .test-step {
+            background: rgba(20, 25, 45, 0.8);
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #40e0d0;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pass {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+        }
+        .status.fail {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+        }
+        .status.pending {
+            background: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+        }
+        button {
+            background: #40e0d0;
+            color: #0a0e27;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            background: #64b5f6;
+        }
+        .link-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .results {
+            background: rgba(30, 35, 55, 0.8);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            color: #40e0d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Unique Link Testing Suite</h1>
+
+        <h2>Test 1: Generate Unique Link</h2>
+        <div class="test-step">
+            <button onclick="generateTestLink()">Generate Test Link</button>
+            <span id="test1-status" class="status pending">PENDING</span>
+            <div id="generated-link" class="link-display" style="display:none;"></div>
+        </div>
+
+        <h2>Test 2: Parse URL Parameters</h2>
+        <div class="test-step">
+            <button onclick="testUrlParsing()">Test URL Parsing</button>
+            <span id="test2-status" class="status pending">PENDING</span>
+            <div id="parsed-params" class="results" style="display:none;"></div>
+        </div>
+
+        <h2>Test 3: Save Link to Storage</h2>
+        <div class="test-step">
+            <button onclick="testLinkStorage()">Test Link Storage</button>
+            <span id="test3-status" class="status pending">PENDING</span>
+            <div id="storage-result" class="results" style="display:none;"></div>
+        </div>
+
+        <h2>Test 4: Submit with Tracking</h2>
+        <div class="test-step">
+            <button onclick="testTrackedSubmission()">Test Tracked Submission</button>
+            <span id="test4-status" class="status pending">PENDING</span>
+            <div id="submission-result" class="results" style="display:none;"></div>
+        </div>
+
+        <h2>Test 5: Verify Dashboard Display</h2>
+        <div class="test-step">
+            <button onclick="verifyDashboardData()">Verify Dashboard Data</button>
+            <span id="test5-status" class="status pending">PENDING</span>
+            <div id="dashboard-data" class="results" style="display:none;"></div>
+        </div>
+
+        <h2>Test Results Summary</h2>
+        <div id="summary" class="results">
+            <p>Click each test button to run the tests sequentially.</p>
+        </div>
+    </div>
+
+    <script>
+        let testLink = null;
+        let testTrackingId = null;
+
+        // Test 1: Generate Unique Link
+        function generateTestLink() {
+            const reference = 'Test_' + new Date().toISOString().split('T')[0];
+            testTrackingId = 'TRK_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            const baseUrl = 'https://backus.agency/backus_security_portal_intelligent.html';
+            testLink = `${baseUrl}?ref=${encodeURIComponent(reference)}&track=${testTrackingId}`;
+
+            // Store link info
+            const linkInfo = {
+                trackingId: testTrackingId,
+                reference: reference,
+                url: testLink,
+                createdAt: new Date().toISOString(),
+                used: false
+            };
+
+            // Save to localStorage
+            let links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+            links.push(linkInfo);
+            localStorage.setItem('assessment_links', JSON.stringify(links));
+
+            document.getElementById('generated-link').innerHTML = `
+                <strong>Generated Link:</strong><br>
+                ${testLink}<br><br>
+                <strong>Tracking ID:</strong> ${testTrackingId}<br>
+                <strong>Reference:</strong> ${reference}
+            `;
+            document.getElementById('generated-link').style.display = 'block';
+            document.getElementById('test1-status').className = 'status pass';
+            document.getElementById('test1-status').textContent = 'PASS';
+
+            updateSummary('Test 1: Link generated successfully');
+        }
+
+        // Test 2: Parse URL Parameters
+        function testUrlParsing() {
+            if (!testLink) {
+                alert('Please generate a test link first');
+                return;
+            }
+
+            // Simulate URL parameter parsing
+            const url = new URL(testLink);
+            const params = new URLSearchParams(url.search);
+            const ref = params.get('ref');
+            const track = params.get('track');
+
+            const result = {
+                reference: ref,
+                trackingId: track,
+                parsed: ref && track
+            };
+
+            document.getElementById('parsed-params').innerHTML = `
+                <pre>${JSON.stringify(result, null, 2)}</pre>
+            `;
+            document.getElementById('parsed-params').style.display = 'block';
+
+            if (result.parsed) {
+                document.getElementById('test2-status').className = 'status pass';
+                document.getElementById('test2-status').textContent = 'PASS';
+                updateSummary('Test 2: URL parameters parsed correctly');
+            } else {
+                document.getElementById('test2-status').className = 'status fail';
+                document.getElementById('test2-status').textContent = 'FAIL';
+                updateSummary('Test 2: Failed to parse URL parameters');
+            }
+        }
+
+        // Test 3: Save Link to Storage
+        function testLinkStorage() {
+            const links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+            const foundLink = links.find(l => l.trackingId === testTrackingId);
+
+            document.getElementById('storage-result').innerHTML = `
+                <strong>Stored Links Count:</strong> ${links.length}<br>
+                <strong>Test Link Found:</strong> ${foundLink ? 'Yes' : 'No'}<br>
+                ${foundLink ? `<pre>${JSON.stringify(foundLink, null, 2)}</pre>` : ''}
+            `;
+            document.getElementById('storage-result').style.display = 'block';
+
+            if (foundLink) {
+                document.getElementById('test3-status').className = 'status pass';
+                document.getElementById('test3-status').textContent = 'PASS';
+                updateSummary('Test 3: Link stored successfully in localStorage');
+            } else {
+                document.getElementById('test3-status').className = 'status fail';
+                document.getElementById('test3-status').textContent = 'FAIL';
+                updateSummary('Test 3: Failed to store link');
+            }
+        }
+
+        // Test 4: Submit with Tracking
+        function testTrackedSubmission() {
+            if (!testTrackingId) {
+                alert('Please generate a test link first');
+                return;
+            }
+
+            // Simulate assessment submission with tracking
+            const testAssessment = {
+                submittedAt: new Date().toISOString(),
+                submissionId: 'SA_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                companyName: 'Test Company',
+                contactName: 'Test User',
+                contactEmail: 'test@example.com',
+                trackingId: testTrackingId,
+                referenceSource: 'Test_' + new Date().toISOString().split('T')[0],
+                source: 'Unique Link',
+                testSubmission: true
+            };
+
+            // Save to localStorage
+            let assessments = JSON.parse(localStorage.getItem('security_assessments') || '[]');
+            assessments.push(testAssessment);
+            localStorage.setItem('security_assessments', JSON.stringify(assessments));
+
+            // Mark link as used
+            let links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+            const linkIndex = links.findIndex(l => l.trackingId === testTrackingId);
+            if (linkIndex !== -1) {
+                links[linkIndex].used = true;
+                links[linkIndex].usedAt = new Date().toISOString();
+                localStorage.setItem('assessment_links', JSON.stringify(links));
+            }
+
+            document.getElementById('submission-result').innerHTML = `
+                <strong>Test Submission Created:</strong><br>
+                <pre>${JSON.stringify(testAssessment, null, 2)}</pre>
+            `;
+            document.getElementById('submission-result').style.display = 'block';
+            document.getElementById('test4-status').className = 'status pass';
+            document.getElementById('test4-status').textContent = 'PASS';
+
+            updateSummary('Test 4: Tracked submission created successfully');
+        }
+
+        // Test 5: Verify Dashboard Display
+        function verifyDashboardData() {
+            const assessments = JSON.parse(localStorage.getItem('security_assessments') || '[]');
+            const links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+
+            const trackedAssessments = assessments.filter(a => a.trackingId);
+            const usedLinks = links.filter(l => l.used);
+
+            const summary = {
+                totalAssessments: assessments.length,
+                trackedAssessments: trackedAssessments.length,
+                totalLinks: links.length,
+                usedLinks: usedLinks.length,
+                testAssessments: assessments.filter(a => a.testSubmission).length
+            };
+
+            document.getElementById('dashboard-data').innerHTML = `
+                <strong>Dashboard Data Summary:</strong><br>
+                <pre>${JSON.stringify(summary, null, 2)}</pre>
+                <br>
+                <strong>Latest Tracked Assessment:</strong><br>
+                ${trackedAssessments.length > 0 ?
+                    `<pre>${JSON.stringify(trackedAssessments[trackedAssessments.length - 1], null, 2)}</pre>` :
+                    'No tracked assessments found'}
+            `;
+            document.getElementById('dashboard-data').style.display = 'block';
+
+            if (trackedAssessments.length > 0) {
+                document.getElementById('test5-status').className = 'status pass';
+                document.getElementById('test5-status').textContent = 'PASS';
+                updateSummary('Test 5: Dashboard data verified successfully');
+            } else {
+                document.getElementById('test5-status').className = 'status fail';
+                document.getElementById('test5-status').textContent = 'FAIL';
+                updateSummary('Test 5: No tracked assessments found');
+            }
+
+            // Final summary
+            updateSummary('All tests completed!');
+        }
+
+        function updateSummary(message) {
+            const summaryDiv = document.getElementById('summary');
+            const timestamp = new Date().toLocaleTimeString();
+            summaryDiv.innerHTML += `<p><strong>[${timestamp}]</strong> ${message}</p>`;
+        }
+
+        // Clean up test data
+        function cleanupTestData() {
+            if (confirm('Remove all test submissions from storage?')) {
+                const assessments = JSON.parse(localStorage.getItem('security_assessments') || '[]');
+                const filtered = assessments.filter(a => !a.testSubmission);
+                localStorage.setItem('security_assessments', JSON.stringify(filtered));
+                alert('Test data cleaned up');
+                location.reload();
+            }
+        }
+    </script>
+
+    <div style="margin-top: 40px; text-align: center;">
+        <button onclick="cleanupTestData()" style="background: #f44336;">Clean Up Test Data</button>
+        <button onclick="location.href='/admin/assessment-viewer.html'" style="background: #4caf50;">Go to Admin Dashboard</button>
+    </div>
+</body>
+</html>

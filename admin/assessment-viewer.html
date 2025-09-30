@@ -96,6 +96,20 @@
             background: #444;
         }
 
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            border: 1px solid #dc2626;
+            font-weight: 600;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+            border-color: #b91c1c;
+            transform: scale(1.02);
+            box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);
+        }
+
         .search-box {
             flex: 1;
             min-width: 300px;
@@ -607,6 +621,7 @@
                 <div style="margin-top: 2rem;">
                     <button class="btn btn-primary" onclick="markAsContacted('${submissionId}')">Mark as Contacted</button>
                     <button class="btn btn-secondary" onclick="exportSingle('${submissionId}')">Export</button>
+                    <button class="btn btn-danger" onclick="deleteAssessment('${submissionId}')" style="background: #dc2626; color: white; margin-left: 10px;">Delete Assessment</button>
                 </div>
             `;
 
@@ -728,6 +743,64 @@
             alert('Marked as contacted');
             closeModal();
             loadAssessments();
+        }
+
+        // Delete assessment with confirmation
+        function deleteAssessment(submissionId) {
+            const assessment = allAssessments.find(a => a.submissionId === submissionId || a.assessmentDate === submissionId);
+
+            if (!assessment) {
+                alert('Assessment not found');
+                return;
+            }
+
+            // Create custom confirmation dialog
+            const confirmMessage = `Are you sure you want to delete this assessment?\n\nCompany: ${assessment.companyName}\nContact: ${assessment.contactName}\nEmail: ${assessment.contactEmail}\nSubmission ID: ${submissionId}\n\nThis action cannot be undone.`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            // Secondary confirmation for safety
+            const secondConfirm = prompt(`To confirm deletion, please type "DELETE" in all caps:`);
+
+            if (secondConfirm !== 'DELETE') {
+                alert('Deletion cancelled. The word "DELETE" was not entered correctly.');
+                return;
+            }
+
+            try {
+                // Remove from localStorage
+                const assessments = JSON.parse(localStorage.getItem('security_assessments') || '[]');
+                const updatedAssessments = assessments.filter(a =>
+                    a.submissionId !== submissionId &&
+                    a.assessmentDate !== submissionId
+                );
+
+                // Save updated list
+                localStorage.setItem('security_assessments', JSON.stringify(updatedAssessments));
+
+                // Remove any associated status
+                const statusKey = `submission_${submissionId}_status`;
+                localStorage.removeItem(statusKey);
+
+                // Remove from Formspree status tracking if exists
+                localStorage.removeItem(`last_sent_${submissionId}`);
+                localStorage.removeItem(`submission_${submissionId}_formspree`);
+                localStorage.removeItem(`submission_${submissionId}_backup`);
+
+                // Close modal and reload
+                closeModal();
+                loadAssessments();
+
+                // Show success message
+                alert(`Assessment for ${assessment.companyName} has been permanently deleted.`);
+
+                console.log('Assessment deleted:', submissionId);
+            } catch (error) {
+                console.error('Error deleting assessment:', error);
+                alert('Failed to delete assessment. Please try again.');
+            }
         }
 
         // Download backup
