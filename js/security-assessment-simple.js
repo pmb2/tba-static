@@ -6,11 +6,35 @@
     const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xjkgvqll';
     const STORAGE_KEY = 'security_assessments';
 
+    // Get URL parameters
+    function getUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            ref: params.get('ref') || '',
+            trackingId: params.get('track') || ''
+        };
+    }
+
     // Override the original submit function
     window.submitAssessmentSimple = function(assessmentData) {
         // Add timestamp and ID
         assessmentData.submittedAt = new Date().toISOString();
         assessmentData.submissionId = 'SA_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        // Add tracking information from URL
+        const urlParams = getUrlParams();
+        if (urlParams.ref) {
+            assessmentData.referenceSource = urlParams.ref;
+        }
+        if (urlParams.trackingId) {
+            assessmentData.trackingId = urlParams.trackingId;
+            // Mark link as used
+            markLinkUsed(urlParams.trackingId);
+        }
+
+        // Add source information
+        assessmentData.source = urlParams.trackingId ? 'Unique Link' : 'Direct';
+        assessmentData.pageUrl = window.location.href;
 
         // Save to localStorage first (always works)
         saveToLocal(assessmentData);
@@ -145,5 +169,34 @@
         console.log('Exported ' + assessments.length + ' assessments');
     };
 
+    // Mark link as used
+    function markLinkUsed(trackingId) {
+        try {
+            let links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+            const linkIndex = links.findIndex(l => l.trackingId === trackingId);
+            if (linkIndex !== -1) {
+                links[linkIndex].used = true;
+                links[linkIndex].usedAt = new Date().toISOString();
+                localStorage.setItem('assessment_links', JSON.stringify(links));
+                console.log('Link marked as used:', trackingId);
+            }
+        } catch (error) {
+            console.error('Error marking link as used:', error);
+        }
+    }
+
+    // Display tracking info if present
+    function displayTrackingInfo() {
+        const urlParams = getUrlParams();
+        if (urlParams.ref || urlParams.trackingId) {
+            console.log('Assessment loaded with tracking:', {
+                reference: urlParams.ref,
+                trackingId: urlParams.trackingId
+            });
+        }
+    }
+
+    // Initialize
+    displayTrackingInfo();
     console.log('Security Assessment Simple Handler loaded');
 })();

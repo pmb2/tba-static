@@ -306,7 +306,13 @@
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" onclick="loadAssessments()">
+            <button class="btn btn-primary" onclick="startNewAssessment()">
+                ➕ New Assessment
+            </button>
+            <button class="btn btn-primary" onclick="generateUniqueLink()">
+                🔗 Generate Link
+            </button>
+            <button class="btn btn-secondary" onclick="loadAssessments()">
                 🔄 Refresh
             </button>
             <button class="btn btn-secondary" onclick="exportAll()">
@@ -317,6 +323,33 @@
             </button>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search by company, email, or ID..." onkeyup="filterAssessments()">
+            </div>
+        </div>
+
+        <!-- Unique Link Generator Modal -->
+        <div id="linkModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; padding: 2rem;">
+            <div style="max-width: 600px; margin: 2rem auto; background: #1a1a1a; border-radius: 8px; padding: 2rem; border: 1px solid #333;">
+                <h3 style="color: #dc2626; margin-bottom: 1.5rem;">Generate Unique Assessment Link</h3>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #999; margin-bottom: 0.5rem;">Client/Reference Name (Optional)</label>
+                    <input type="text" id="linkReference" placeholder="e.g., Acme Corp or John Smith" style="width: 100%; padding: 0.75rem; background: #0f0f0f; border: 1px solid #333; border-radius: 6px; color: white;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #999; margin-bottom: 0.5rem;">Notes (Optional)</label>
+                    <input type="text" id="linkNotes" placeholder="e.g., Q1 2025 Assessment" style="width: 100%; padding: 0.75rem; background: #0f0f0f; border: 1px solid #333; border-radius: 6px; color: white;">
+                </div>
+                <button class="btn btn-primary" onclick="createLink()" style="margin-right: 1rem;">Generate Link</button>
+                <button class="btn btn-secondary" onclick="closeLinkModal()">Cancel</button>
+                <div id="generatedLink" style="margin-top: 1.5rem; display: none;">
+                    <label style="display: block; color: #999; margin-bottom: 0.5rem;">Generated Link:</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="linkOutput" readonly style="flex: 1; padding: 0.75rem; background: #0f0f0f; border: 1px solid #dc2626; border-radius: 6px; color: #11ff03; font-family: monospace;">
+                        <button class="btn btn-primary" onclick="copyLink()">📋 Copy</button>
+                    </div>
+                    <div style="margin-top: 1rem; color: #666; font-size: 0.9rem;">
+                        This link will track submissions from this specific recipient.
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -433,10 +466,12 @@
             tbody.innerHTML = filteredAssessments.map(assessment => {
                 const date = new Date(assessment.submittedAt || assessment.assessmentDate);
                 const status = getStatus(assessment);
+                const source = assessment.source || 'Direct';
+                const sourceInfo = assessment.referenceSource ? `<br><small style="color: #10b981;">Via: ${assessment.referenceSource}</small>` : '';
 
                 return `
                     <tr>
-                        <td>${date.toLocaleDateString()}</td>
+                        <td>${date.toLocaleDateString()}${sourceInfo}</td>
                         <td><strong>${assessment.companyName || 'N/A'}</strong></td>
                         <td>${assessment.contactName || 'N/A'}<br><small>${assessment.contactEmail || 'N/A'}</small></td>
                         <td>${assessment.industry || 'N/A'}</td>
@@ -554,6 +589,18 @@
                         <div class="detail-value">${assessment.assessmentScore || 0}</div>
                         <div class="detail-label">Submitted:</div>
                         <div class="detail-value">${new Date(assessment.submittedAt || assessment.assessmentDate).toLocaleString()}</div>
+                        ${assessment.source ? `
+                        <div class="detail-label">Source:</div>
+                        <div class="detail-value">${assessment.source}</div>
+                        ` : ''}
+                        ${assessment.referenceSource ? `
+                        <div class="detail-label">Reference:</div>
+                        <div class="detail-value" style="color: #10b981;">${assessment.referenceSource}</div>
+                        ` : ''}
+                        ${assessment.trackingId ? `
+                        <div class="detail-label">Tracking ID:</div>
+                        <div class="detail-value" style="font-family: monospace; font-size: 0.9rem;">${assessment.trackingId}</div>
+                        ` : ''}
                     </div>
                 </div>
 
@@ -810,6 +857,73 @@
             alert('Report generated successfully');
         }
 
+        // Start new assessment
+        function startNewAssessment() {
+            window.open('/backus_security_portal_intelligent.html', '_blank');
+        }
+
+        // Generate unique link modal
+        function generateUniqueLink() {
+            document.getElementById('linkModal').style.display = 'block';
+            document.getElementById('linkReference').value = '';
+            document.getElementById('linkNotes').value = '';
+            document.getElementById('generatedLink').style.display = 'none';
+        }
+
+        // Close link modal
+        function closeLinkModal() {
+            document.getElementById('linkModal').style.display = 'none';
+        }
+
+        // Create unique link
+        function createLink() {
+            const reference = document.getElementById('linkReference').value || 'Direct';
+            const notes = document.getElementById('linkNotes').value || '';
+
+            // Generate unique tracking ID
+            const trackingId = 'TRK_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+            // Store link metadata
+            const linkData = {
+                trackingId: trackingId,
+                reference: reference,
+                notes: notes,
+                created: new Date().toISOString(),
+                used: false
+            };
+
+            // Save to localStorage
+            let links = JSON.parse(localStorage.getItem('assessment_links') || '[]');
+            links.push(linkData);
+            localStorage.setItem('assessment_links', JSON.stringify(links));
+
+            // Create the URL with tracking parameters
+            const baseUrl = 'https://backus.agency/backus_security_portal_intelligent.html';
+            const fullUrl = `${baseUrl}?ref=${encodeURIComponent(reference)}&track=${trackingId}`;
+
+            // Display the link
+            document.getElementById('linkOutput').value = fullUrl;
+            document.getElementById('generatedLink').style.display = 'block';
+        }
+
+        // Copy link to clipboard
+        function copyLink() {
+            const linkInput = document.getElementById('linkOutput');
+            linkInput.select();
+            document.execCommand('copy');
+
+            // Show confirmation
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Copied!';
+            button.style.background = '#10b981';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.background = '';
+            }, 2000);
+        }
+
         // Initialize on load
         document.addEventListener('DOMContentLoaded', () => {
             loadAssessments();
@@ -818,10 +932,11 @@
             setInterval(loadAssessments, 30000);
         });
 
-        // Close modal on escape
+        // Close modals on escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
+                closeLinkModal();
             }
         });
     </script>
