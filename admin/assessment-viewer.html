@@ -327,7 +327,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ Security Assessment Dashboard</h1>
+            <h1>🛡️ Admin Dashboard</h1>
             <div style="display: flex; align-items: center; gap: 2rem;">
                 <span id="lastUpdate" style="color: #666;">Last update: Never</span>
                 <span id="userDisplay" style="color: #999; font-size: 0.9rem;"></span>
@@ -335,6 +335,22 @@
                     Logout
                 </button>
             </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid #333; padding-bottom: 1rem;">
+            <button id="tab-assessments" class="tab-button active" onclick="switchTab('assessments')" style="background: transparent; color: #dc2626; border: none; padding: 0.75rem 1.5rem; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                📋 Assessments
+            </button>
+            <button id="tab-forms" class="tab-button" onclick="switchTab('forms')" style="background: transparent; color: #999; border: none; padding: 0.75rem 1.5rem; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                📝 Form Submissions
+            </button>
+            <button id="tab-interactions" class="tab-button" onclick="switchTab('interactions')" style="background: transparent; color: #999; border: none; padding: 0.75rem 1.5rem; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                🎯 All Interactions
+            </button>
+            <button id="tab-analytics" class="tab-button" onclick="switchTab('analytics')" style="background: transparent; color: #999; border: none; padding: 0.75rem 1.5rem; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                📊 Analytics
+            </button>
         </div>
 
         <div class="stats">
@@ -412,26 +428,99 @@
             <div class="tag" onclick="toggleFilter('maturity', 'initial')">Just Starting</div>
         </div>
 
-        <div class="assessments-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Company</th>
-                        <th>Contact</th>
-                        <th>Industry</th>
-                        <th>Score</th>
-                        <th>Timeline</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="assessmentsList">
-                    <tr>
-                        <td colspan="8" class="no-data">No assessments found. Data will appear here once submissions are received.</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Tab Content -->
+        <div id="tab-content-assessments" class="tab-content">
+            <div class="assessments-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Industry</th>
+                            <th>Score</th>
+                            <th>Timeline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assessmentsList">
+                        <tr>
+                            <td colspan="8" class="no-data">No assessments found. Data will appear here once submissions are received.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-content-forms" class="tab-content" style="display: none;">
+            <div class="assessments-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Page</th>
+                            <th>Form Type</th>
+                            <th>Contact Info</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="formsList">
+                        <tr>
+                            <td colspan="6" class="no-data">Loading form submissions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-content-interactions" class="tab-content" style="display: none;">
+            <div class="assessments-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Page</th>
+                            <th>Details</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="interactionsList">
+                        <tr>
+                            <td colspan="5" class="no-data">Loading all interactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-content-analytics" class="tab-content" style="display: none;">
+            <div style="margin-bottom: 2rem;">
+                <h3 style="color: #dc2626;">Real-Time Analytics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div class="stat-card">
+                        <div class="stat-label">Today</div>
+                        <div class="stat-value" id="todayCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">This Week</div>
+                        <div class="stat-value" id="weekCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Conversion</div>
+                        <div class="stat-value" id="conversionRate">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Top Page</div>
+                        <div id="topPage" style="font-size: 0.9rem; color: #999;">-</div>
+                    </div>
+                </div>
+            </div>
+            <div id="analyticsData" style="background: #1a1a1a; padding: 1rem; border-radius: 8px;">
+                <p style="color: #999;">Analytics data will appear here...</p>
+            </div>
         </div>
 
         <div class="export-section">
@@ -464,13 +553,51 @@
         </div>
     </div>
 
-    <!-- Load JSONBin cloud storage handler -->
+    <!-- Load cloud storage handlers -->
     <script src="../js/security-assessment-jsonbin.js"></script>
+    <script src="../js/universal-form-tracker.js"></script>
 
     <script>
         let allAssessments = [];
         let filteredAssessments = [];
+        let allInteractions = [];
         let activeFilters = {};
+        let currentTab = 'assessments';
+
+        // Switch tab function
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.style.background = 'transparent';
+                button.style.color = '#999';
+            });
+
+            // Show selected tab content
+            document.getElementById(`tab-content-${tabName}`).style.display = 'block';
+
+            // Highlight active tab
+            const activeButton = document.getElementById(`tab-${tabName}`);
+            activeButton.style.background = 'rgba(220, 38, 38, 0.1)';
+            activeButton.style.color = '#dc2626';
+
+            // Load appropriate data
+            if (tabName === 'assessments') {
+                loadAssessments();
+            } else if (tabName === 'forms') {
+                loadFormSubmissions();
+            } else if (tabName === 'interactions') {
+                loadAllInteractions();
+            } else if (tabName === 'analytics') {
+                loadAnalytics();
+            }
+        }
 
         // Load assessments from both local and cloud storage
         async function loadAssessments() {
@@ -1119,6 +1246,157 @@
                     userDisplay.textContent = `Logged in as: ${window.currentUser.username}`;
                 }
             }
+        }
+
+        // Load form submissions
+        async function loadFormSubmissions() {
+            const formsList = document.getElementById('formsList');
+            formsList.innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading form submissions...</td></tr>';
+
+            try {
+                // Get all interactions
+                if (typeof window.getAllInteractions === 'function') {
+                    const interactions = await window.getAllInteractions();
+
+                    // Filter for form submissions
+                    const forms = interactions.filter(i =>
+                        i.type === 'form_submission' ||
+                        i.type === 'ajax_submission' ||
+                        i.type === 'xhr_submission'
+                    );
+
+                    if (forms.length === 0) {
+                        formsList.innerHTML = '<tr><td colspan="6" class="no-data">No form submissions found yet.</td></tr>';
+                        return;
+                    }
+
+                    // Display forms
+                    formsList.innerHTML = forms.map(form => {
+                        const time = new Date(form.timestamp).toLocaleString();
+                        const page = form.page || 'Unknown';
+                        const formType = form.formData?._formId || form.type || 'Form';
+                        const contact = form.formData?.email || form.formData?.name || '-';
+
+                        return `
+                            <tr>
+                                <td>${time}</td>
+                                <td>${page}</td>
+                                <td><span class="tag">${formType}</span></td>
+                                <td>${contact}</td>
+                                <td><span class="status-badge">Captured</span></td>
+                                <td>
+                                    <button class="action-btn" onclick='viewFormDetails(${JSON.stringify(form).replace(/'/g, "\\'")})'>View</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load form submissions:', error);
+                formsList.innerHTML = '<tr><td colspan="6" class="no-data">Failed to load form submissions.</td></tr>';
+            }
+        }
+
+        // Load all interactions
+        async function loadAllInteractions() {
+            const interactionsList = document.getElementById('interactionsList');
+            interactionsList.innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading interactions...</td></tr>';
+
+            try {
+                if (typeof window.getAllInteractions === 'function') {
+                    allInteractions = await window.getAllInteractions();
+
+                    if (allInteractions.length === 0) {
+                        interactionsList.innerHTML = '<tr><td colspan="5" class="no-data">No interactions tracked yet.</td></tr>';
+                        return;
+                    }
+
+                    // Display all interactions
+                    interactionsList.innerHTML = allInteractions.slice(0, 100).map(interaction => {
+                        const time = new Date(interaction.timestamp).toLocaleString();
+                        const type = interaction.type.replace(/_/g, ' ');
+                        const page = interaction.page || interaction.pageUrl || 'Unknown';
+                        const details = interaction.formData?.email || interaction.buttonText || interaction.data || '-';
+
+                        return `
+                            <tr>
+                                <td>${time}</td>
+                                <td><span class="tag">${type}</span></td>
+                                <td>${page}</td>
+                                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${details}</td>
+                                <td>
+                                    <button class="action-btn" onclick='viewInteractionDetails(${JSON.stringify(interaction).replace(/'/g, "\\'")})'>View</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Failed to load interactions:', error);
+                interactionsList.innerHTML = '<tr><td colspan="5" class="no-data">Failed to load interactions.</td></tr>';
+            }
+        }
+
+        // Load analytics
+        async function loadAnalytics() {
+            try {
+                if (typeof window.getAllInteractions === 'function') {
+                    const interactions = await window.getAllInteractions();
+
+                    // Calculate today's count
+                    const today = new Date().toDateString();
+                    const todayCount = interactions.filter(i =>
+                        new Date(i.timestamp).toDateString() === today
+                    ).length;
+                    document.getElementById('todayCount').textContent = todayCount;
+
+                    // Calculate this week's count
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    const weekCount = interactions.filter(i =>
+                        new Date(i.timestamp) >= weekAgo
+                    ).length;
+                    document.getElementById('weekCount').textContent = weekCount;
+
+                    // Calculate conversion rate (forms/visits estimate)
+                    const forms = interactions.filter(i => i.type.includes('form')).length;
+                    const rate = interactions.length > 0 ? ((forms / interactions.length) * 100).toFixed(1) : 0;
+                    document.getElementById('conversionRate').textContent = rate + '%';
+
+                    // Find top page
+                    const pageCounts = {};
+                    interactions.forEach(i => {
+                        const page = i.page || 'Unknown';
+                        pageCounts[page] = (pageCounts[page] || 0) + 1;
+                    });
+                    const topPage = Object.entries(pageCounts)
+                        .sort((a, b) => b[1] - a[1])[0];
+                    if (topPage) {
+                        document.getElementById('topPage').textContent = topPage[0] + ' (' + topPage[1] + ')';
+                    }
+
+                    // Display summary
+                    document.getElementById('analyticsData').innerHTML = `
+                        <h4>Interaction Summary</h4>
+                        <p>Total Interactions: ${interactions.length}</p>
+                        <p>Form Submissions: ${forms}</p>
+                        <p>Button Clicks: ${interactions.filter(i => i.type === 'button_click').length}</p>
+                        <p>AJAX Calls: ${interactions.filter(i => i.type.includes('ajax')).length}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        // View form details
+        function viewFormDetails(form) {
+            alert(JSON.stringify(form.formData, null, 2));
+        }
+
+        // View interaction details
+        function viewInteractionDetails(interaction) {
+            alert(JSON.stringify(interaction, null, 2));
         }
 
         // Initialize on load
