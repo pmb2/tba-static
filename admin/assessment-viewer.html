@@ -462,7 +462,8 @@
                             <th>Page</th>
                             <th>Form Type</th>
                             <th>Contact Info</th>
-                            <th>Status</th>
+                            <th>Location</th>
+                            <th>IP Address</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -533,9 +534,6 @@
             </button>
             <button class="btn btn-secondary" onclick="generateReport()">
                 📊 Generate Report
-            </button>
-            <button class="btn btn-primary" onclick="syncToCloud()" style="background: #10b981;">
-                ☁️ Sync to Cloud
             </button>
         </div>
     </div>
@@ -1276,6 +1274,10 @@
                         const page = form.page || 'Unknown';
                         const formType = form.formData?._formId || form.type || 'Form';
                         const contact = form.formData?.email || form.formData?.name || '-';
+                        const location = form.location ?
+                            `${form.location.city}, ${form.location.countryCode}` :
+                            'Unknown';
+                        const ip = form.ipAddress || 'Unknown';
 
                         return `
                             <tr>
@@ -1283,7 +1285,8 @@
                                 <td>${page}</td>
                                 <td><span class="tag">${formType}</span></td>
                                 <td>${contact}</td>
-                                <td><span class="status-badge">Captured</span></td>
+                                <td><span style="color: #10b981;">${location}</span></td>
+                                <td><span style="font-family: monospace; font-size: 0.9rem;">${ip}</span></td>
                                 <td>
                                     <button class="action-btn" onclick='viewFormDetails(${JSON.stringify(form).replace(/'/g, "\\'")})'>View</button>
                                 </td>

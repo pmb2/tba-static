@@ -153,9 +153,75 @@
         return data;
     }
 
+    // Get user's IP address using free service
+    async function getUserIP() {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch (error) {
+            console.error('Failed to get IP:', error);
+            return 'Unknown';
+        }
+    }
+
+    // Get user's location from IP
+    async function getUserLocation(ip) {
+        try {
+            // Using free IP geolocation service
+            const response = await fetch(`https://ipapi.co/${ip}/json/`);
+            const data = await response.json();
+            return {
+                ip: ip,
+                city: data.city || 'Unknown',
+                region: data.region || 'Unknown',
+                country: data.country_name || 'Unknown',
+                countryCode: data.country_code || 'XX',
+                postal: data.postal || 'Unknown',
+                latitude: data.latitude || 0,
+                longitude: data.longitude || 0,
+                timezone: data.timezone || 'Unknown',
+                org: data.org || 'Unknown'
+            };
+        } catch (error) {
+            console.error('Failed to get location:', error);
+            return {
+                ip: ip,
+                city: 'Unknown',
+                region: 'Unknown',
+                country: 'Unknown',
+                countryCode: 'XX'
+            };
+        }
+    }
+
+    // Cache IP and location data
+    let cachedIPData = null;
+    let ipFetchPromise = null;
+
+    async function getIPAndLocation() {
+        if (cachedIPData) {
+            return cachedIPData;
+        }
+
+        if (!ipFetchPromise) {
+            ipFetchPromise = (async () => {
+                const ip = await getUserIP();
+                const location = await getUserLocation(ip);
+                cachedIPData = location;
+                return location;
+            })();
+        }
+
+        return ipFetchPromise;
+    }
+
     // Track form submission
-    function trackFormSubmission(form, eventType = 'submit') {
+    async function trackFormSubmission(form, eventType = 'submit') {
         const formData = captureFormData(form);
+
+        // Get IP and location data
+        const locationData = await getIPAndLocation();
 
         // Create interaction record
         const interaction = {
@@ -171,7 +237,21 @@
             userAgent: navigator.userAgent,
             screenResolution: `${screen.width}x${screen.height}`,
             language: navigator.language,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            // IP and Location data
+            ipAddress: locationData.ip,
+            location: {
+                city: locationData.city,
+                region: locationData.region,
+                country: locationData.country,
+                countryCode: locationData.countryCode,
+                postal: locationData.postal,
+                coordinates: {
+                    lat: locationData.latitude,
+                    lng: locationData.longitude
+                }
+            },
+            network: locationData.org
         };
 
         // Save to localStorage
