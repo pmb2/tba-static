@@ -823,9 +823,12 @@
                                 <span>Professional Services</span>
                             </label>
                             <label class="checkbox-label">
-                                <input type="checkbox" value="other" name="services">
+                                <input type="checkbox" value="other" name="services" id="services-other-checkbox">
                                 <span>Other</span>
                             </label>
+                        </div>
+                        <div id="services-other-container" style="display: none; margin-top: 1rem;">
+                            <input type="text" id="services-other-text" placeholder="Please specify the service you're interested in..." style="width: 100%; padding: 0.75rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #e0e0e0; border-radius: 6px; font-size: 1rem;">
                         </div>
                     </div>
                 </div>
@@ -1058,6 +1061,18 @@
                 });
             }
 
+            // Other services checkbox toggle
+            const servicesOtherCheckbox = document.getElementById('services-other-checkbox');
+            const servicesOtherContainer = document.getElementById('services-other-container');
+            if (servicesOtherCheckbox && servicesOtherContainer) {
+                servicesOtherCheckbox.addEventListener('change', function() {
+                    servicesOtherContainer.style.display = this.checked ? 'block' : 'none';
+                    if (!this.checked) {
+                        document.getElementById('services-other-text').value = '';
+                    }
+                });
+            }
+
             // Budget range slider
             var budgetSlider = document.getElementById('budgetRange');
             if (budgetSlider) {
@@ -1215,7 +1230,14 @@
             // Services
             assessmentData.services = [];
             document.querySelectorAll('input[name="services"]:checked').forEach(function(cb) {
-                assessmentData.services.push(cb.value);
+                if (cb.value === 'other') {
+                    const otherText = document.getElementById('services-other-text').value.trim();
+                    if (otherText) {
+                        assessmentData.services.push('Other: ' + otherText);
+                    }
+                } else {
+                    assessmentData.services.push(cb.value);
+                }
             });
         }
 
