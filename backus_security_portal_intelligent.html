@@ -781,6 +781,13 @@
                                 <input type="checkbox" value="board" name="concerns">
                                 <span>Board or investor mandate</span>
                             </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="other" name="concerns" id="concerns-other-checkbox">
+                                <span>Other</span>
+                            </label>
+                        </div>
+                        <div id="concerns-other-container" style="display: none; margin-top: 1rem;">
+                            <input type="text" id="concerns-other-text" placeholder="Please specify your security concern..." style="width: 100%; padding: 0.75rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #e0e0e0; border-radius: 6px; font-size: 1rem;">
                         </div>
                     </div>
 
@@ -1039,6 +1046,18 @@
                 });
             });
 
+            // Other concerns checkbox toggle
+            const otherCheckbox = document.getElementById('concerns-other-checkbox');
+            const otherContainer = document.getElementById('concerns-other-container');
+            if (otherCheckbox && otherContainer) {
+                otherCheckbox.addEventListener('change', function() {
+                    otherContainer.style.display = this.checked ? 'block' : 'none';
+                    if (!this.checked) {
+                        document.getElementById('concerns-other-text').value = '';
+                    }
+                });
+            }
+
             // Budget range slider
             var budgetSlider = document.getElementById('budgetRange');
             if (budgetSlider) {
@@ -1183,7 +1202,14 @@
             // Concerns
             assessmentData.concerns = [];
             document.querySelectorAll('input[name="concerns"]:checked').forEach(function(cb) {
-                assessmentData.concerns.push(cb.value);
+                if (cb.value === 'other') {
+                    const otherText = document.getElementById('concerns-other-text').value.trim();
+                    if (otherText) {
+                        assessmentData.concerns.push('Other: ' + otherText);
+                    }
+                } else {
+                    assessmentData.concerns.push(cb.value);
+                }
             });
 
             // Services
