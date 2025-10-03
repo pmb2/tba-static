@@ -599,33 +599,73 @@
 
         // Load assessments from both local and cloud storage
         async function loadAssessments() {
+            console.log('🔄 Loading assessments...');
+            const tbody = document.getElementById('assessmentsList');
+
             try {
                 // Show loading indicator
-                document.getElementById('assessmentsList').innerHTML = '<p style="text-align: center; padding: 2rem;">Loading assessments from cloud...</p>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading assessments from cloud...</td></tr>';
 
-                // Try to load from cloud first (if getAllAssessments function exists)
+                // Wait for scripts to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                let loadedAssessments = [];
+
+                // Method 1: Try cloud function
                 if (typeof window.getAllAssessments === 'function') {
-                    allAssessments = await window.getAllAssessments();
-                    console.log('Loaded', allAssessments.length, 'assessments from cloud and local storage');
+                    console.log('✅ getAllAssessments available, fetching...');
+                    try {
+                        loadedAssessments = await window.getAllAssessments();
+                        console.log('📊 Cloud fetch:', loadedAssessments.length, 'assessments');
+                    } catch (err) {
+                        console.error('❌ Cloud error:', err);
+                    }
                 } else {
-                    // Fallback to local storage only
-                    let localData = [];
+                    console.warn('⚠️ getAllAssessments not found');
+                }
+
+                // Method 2: Direct localStorage
+                if (!loadedAssessments || loadedAssessments.length === 0) {
+                    console.log('🔍 Checking localStorage...');
                     const stored = localStorage.getItem('security_assessments');
                     if (stored) {
                         try {
-                            localData = JSON.parse(stored);
-                            if (!Array.isArray(localData)) {
-                                localData = [];
+                            const localData = JSON.parse(stored);
+                            if (Array.isArray(localData)) {
+                                loadedAssessments = localData;
+                                console.log('💾 localStorage:', localData.length, 'assessments');
                             }
                         } catch (e) {
-                            console.error('Error parsing stored data:', e);
-                            localData = [];
+                            console.error('❌ Parse error:', e);
                         }
                     }
-                    allAssessments = localData;
                 }
 
-                // Sort by date (newest first)
+                // Method 3: Direct JSONBin API call
+                if (!loadedAssessments || loadedAssessments.length === 0) {
+                    console.log('☁️ Direct JSONBin fetch...');
+                    try {
+                        const response = await fetch('https://api.jsonbin.io/v3/b/678d3a9bad19ca34f8dd6c7b/latest', {
+                            headers: {
+                                'X-Master-Key': '$2a$10$wiqbQnJrm29tc73dCO/xcOWvjVbXfUAZsPAYGqGCJ8pIXAOPaIuYS'
+                            }
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.record && data.record.assessments) {
+                                loadedAssessments = data.record.assessments;
+                                console.log('🌐 Direct fetch:', loadedAssessments.length, 'assessments');
+                            }
+                        }
+                    } catch (err) {
+                        console.error('❌ JSONBin error:', err);
+                    }
+                }
+
+                allAssessments = loadedAssessments || [];
+                console.log('📈 Total:', allAssessments.length, 'assessments');
+
+                // Sort newest first
                 allAssessments.sort((a, b) => {
                     const dateA = new Date(b.submittedAt || b.assessmentDate || 0);
                     const dateB = new Date(a.submittedAt || a.assessmentDate || 0);
@@ -636,10 +676,11 @@
                 updateDisplay();
                 updateStats();
 
-                // Update last update time
                 document.getElementById('lastUpdate').textContent = 'Last update: ' + new Date().toLocaleString();
+                console.log('✅ Dashboard loaded');
             } catch (error) {
-                console.error('Error loading assessments:', error);
+                console.error('❌ Fatal error:', error);
+                tbody.innerHTML = `<tr><td colspan="8" class="no-data">Error: ${error.message}<br>Check console for details</td></tr>`;
             }
         }
 
