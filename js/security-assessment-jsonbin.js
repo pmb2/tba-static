@@ -7,7 +7,7 @@
     const JSONBIN_API_KEY = '$2a$10$wiqbQnJrm29tc73dCO/xcOWvjVbXfUAZsPAYGqGCJ8pIXAOPaIuYS';
     const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
     // FIXED: Use a single shared bin ID for ALL assessments
-    const JSONBIN_BIN_ID = '678d3a9bad19ca34f8dd6c7b'; // Single shared bin for all assessments
+    const JSONBIN_BIN_ID = '68e00e49d0ea881f40944538'; // Single shared bin for all assessments
 
     // Formspree Configuration
     const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xjkgvqll';
