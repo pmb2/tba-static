@@ -6,7 +6,8 @@
     // JSONBin.io Configuration
     const JSONBIN_API_KEY = '$2a$10$wiqbQnJrm29tc73dCO/xcOWvjVbXfUAZsPAYGqGCJ8pIXAOPaIuYS';
     const JSONBIN_BASE_URL = 'https://api.jsonbin.io/v3';
-    let JSONBIN_BIN_ID = localStorage.getItem('jsonbin_assessments_bin_id') || null;
+    // FIXED: Use a single shared bin ID for ALL assessments
+    const JSONBIN_BIN_ID = '678d3a9bad19ca34f8dd6c7b'; // Single shared bin for all assessments
 
     // Formspree Configuration
     const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xjkgvqll';
@@ -21,47 +22,11 @@
         };
     }
 
-    // Create or get JSONBin bin
-    async function ensureJsonBin() {
-        if (JSONBIN_BIN_ID) {
-            return JSONBIN_BIN_ID;
-        }
-
-        try {
-            // Create a new bin for assessments
-            const response = await fetch(`${JSONBIN_BASE_URL}/b`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': JSONBIN_API_KEY,
-                    'X-Bin-Name': 'Security Assessments',
-                    'X-Bin-Private': 'false'
-                },
-                body: JSON.stringify({
-                    assessments: [],
-                    lastUpdated: new Date().toISOString()
-                })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                JSONBIN_BIN_ID = data.metadata.id;
-                localStorage.setItem('jsonbin_assessments_bin_id', JSONBIN_BIN_ID);
-                console.log('Created new JSONBin:', JSONBIN_BIN_ID);
-                return JSONBIN_BIN_ID;
-            }
-        } catch (error) {
-            console.error('Failed to create JSONBin:', error);
-        }
-
-        // Fallback bin ID if creation fails
-        JSONBIN_BIN_ID = '678d3a9bad19ca34f8dd6c7b'; // Backup bin ID
-        return JSONBIN_BIN_ID;
-    }
+    // No bin creation needed - using fixed shared bin ID
 
     // Fetch assessments from JSONBin
     async function fetchFromJsonBin() {
-        const binId = await ensureJsonBin();
+        const binId = JSONBIN_BIN_ID;
 
         try {
             const response = await fetch(`${JSONBIN_BASE_URL}/b/${binId}/latest`, {
@@ -84,7 +49,9 @@
 
     // Save assessment to JSONBin
     async function saveToJsonBin(newAssessment) {
-        const binId = await ensureJsonBin();
+        const binId = JSONBIN_BIN_ID;
+
+        console.log('💾 Saving assessment to cloud:', newAssessment.submissionId);
 
         try {
             // Fetch existing assessments
@@ -162,6 +129,17 @@
             console.error('❌ Cloud save error:', error);
             console.log('Assessment still saved locally');
         });
+
+        // Send email notification (if available)
+        if (typeof window.sendAssessmentEmail === 'function') {
+            window.sendAssessmentEmail(assessmentData).then(result => {
+                if (result.success) {
+                    console.log('✅ Assessment email sent successfully');
+                } else {
+                    console.warn('⚠️ Email send failed:', result.error);
+                }
+            });
+        }
 
         // Send to Formspree
         sendToFormspree(assessmentData);
@@ -388,13 +366,7 @@
     displayTrackingInfo();
     console.log('Security Assessment JSONBin Cloud Handler loaded');
     console.log('Cloud storage enabled - assessments accessible from any location');
-
-    // Ensure bin exists on load
-    ensureJsonBin().then(binId => {
-        if (binId) {
-            console.log('JSONBin ready:', binId);
-        }
-    });
+    console.log('Using shared bin:', JSONBIN_BIN_ID);
 
     // Auto-sync on load for admin pages
     if (window.location.pathname.includes('admin')) {
