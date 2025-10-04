@@ -269,9 +269,8 @@
             // Filter out the deleted assessment
             const updatedAssessments = allAssessments.filter(a => a.submissionId !== submissionId);
 
-            // Update JSONBin
-            const binId = await ensureJsonBin();
-            const response = await fetch(`${JSONBIN_BASE_URL}/b/${binId}`, {
+            // Update JSONBin with fixed bin ID
+            const response = await fetch(`${JSONBIN_BASE_URL}/b/${JSONBIN_BIN_ID}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
