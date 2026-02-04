@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Backus Agency Directory</title>
+  <meta name="description" content="Internal directory of Backus Agency subdomains." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f2ea;
+      --bg-2: #e9f1f4;
+      --ink: #1a1a1a;
+      --muted: #596066;
+      --card: #ffffff;
+      --line: rgba(26, 26, 26, 0.08);
+      --accent: #0f6e6d;
+      --accent-2: #d96c44;
+      --accent-3: #1f9aa1;
+      --shadow: 0 18px 45px rgba(17, 23, 29, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Figtree", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(1200px 500px at 12% -10%, rgba(15, 110, 109, 0.18), transparent 60%),
+                  radial-gradient(900px 600px at 90% 10%, rgba(217, 108, 68, 0.2), transparent 60%),
+                  linear-gradient(160deg, var(--bg), var(--bg-2));
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+
+    header {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .title {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 720px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      margin: 26px 0 18px;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .search input {
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      width: 100%;
+      font-family: inherit;
+      background: transparent;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .filter-btn {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 50px rgba(17, 23, 29, 0.15);
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(15, 110, 109, 0.08), transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .tag.alt {
+      color: var(--accent-2);
+    }
+
+    .name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .url {
+      font-size: 0.92rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .desc {
+      font-size: 0.95rem;
+      color: var(--muted);
+      min-height: 40px;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .open-link {
+      text-decoration: none;
+      color: #fff;
+      background: var(--accent-3);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      background: rgba(15, 110, 109, 0.12);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    @media (max-width: 760px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="title">Backus Agency Internal Directory</div>
+      <div class="subtitle">
+        A curated map of our active subdomains. Access is intended for internal members only and should be protected by the Authgear universal auth gateway.
+      </div>
+      <div class="meta-row">
+        <span class="pill">Internal</span>
+        <span class="pill">Authgear Protected</span>
+        <span class="pill" id="total-count">0 services</span>
+      </div>
+    </header>
+
+    <section class="controls">
+      <label class="search">
+        <span>Search</span>
+        <input id="search" type="search" placeholder="Filter by name, URL, or tag" />
+      </label>
+      <div class="filters" id="filters"></div>
+    </section>
+
+    <section>
+      <div class="grid" id="cards"></div>
+      <div class="empty" id="empty" hidden>No matches. Try a different search or filter.</div>
+    </section>
+  </div>
+
+  <script>
+    const services = [
+      {
+        name: "Backus Agency",
+        url: "https://backus.agency",
+        category: "Public",
+        tag: "Main",
+        description: "Main marketing site and brand home base."
+      },
+      {
+        name: "www",
+        url: "https://www.backus.agency",
+        category: "Public",
+        tag: "Alias",
+        description: "WWW alias for the main website."
+      },
+      {
+        name: "BookEnds",
+        url: "https://bookends.backus.agency",
+        category: "Apps",
+        tag: "Product",
+        description: "BookEnds application and customer portal."
+      },
+      {
+        name: "Agent Zero",
+        url: "https://agent.backus.agency",
+        category: "Apps",
+        tag: "AI",
+        description: "Agent Zero interface and services."
+      },
+      {
+        name: "N8N",
+        url: "https://n8n.backus.agency",
+        category: "Apps",
+        tag: "Automation",
+        description: "Workflow automation and integration hub."
+      },
+      {
+        name: "NocoDB",
+        url: "https://noco.backus.agency",
+        category: "Apps",
+        tag: "Data",
+        description: "No-code database and internal ops tooling."
+      },
+      {
+        name: "Plane",
+        url: "https://plane.backus.agency",
+        category: "Apps",
+        tag: "PM",
+        description: "Project planning and product operations."
+      },
+      {
+        name: "Plane MCP",
+        url: "https://plane-mcp.backus.agency",
+        category: "Infra",
+        tag: "MCP",
+        description: "Plane MCP integration endpoint."
+      },
+      {
+        name: "DB MCP",
+        url: "https://db-mcp.backus.agency",
+        category: "Infra",
+        tag: "MCP",
+        description: "Database MCP endpoint for internal tooling."
+      },
+      {
+        name: "Authgear",
+        url: "https://auth.backus.agency",
+        category: "Auth",
+        tag: "SSO",
+        description: "Primary Authgear tenant for identity."
+      },
+      {
+        name: "Authgear Admin",
+        url: "https://auth-admin.backus.agency",
+        category: "Auth",
+        tag: "Admin",
+        description: "Authgear admin portal."
+      },
+      {
+        name: "Authgear Admin (mTLS)",
+        url: "https://auth-admin-mtls.backus.agency",
+        category: "Auth",
+        tag: "mTLS",
+        description: "mTLS-protected admin access."
+      },
+      {
+        name: "SSO",
+        url: "https://sso.backus.agency",
+        category: "Auth",
+        tag: "SSO",
+        description: "Single sign-on entry point."
+      },
+      {
+        name: "STT",
+        url: "https://stt.backus.agency",
+        category: "Apps",
+        tag: "Voice",
+        description: "Speech-to-text gateway and services."
+      },
+      {
+        name: "Mic",
+        url: "https://mic.backus.agency",
+        category: "Apps",
+        tag: "Voice",
+        description: "Microphone capture service endpoint."
+      },
+      {
+        name: "Cloud",
+        url: "https://cloud.backus.agency",
+        category: "Apps",
+        tag: "Files",
+        description: "Internal cloud storage and collaboration."
+      },
+      {
+        name: "Mail",
+        url: "https://mail.backus.agency",
+        category: "Comms",
+        tag: "Email",
+        description: "Mail portal and mailbox management."
+      },
+      {
+        name: "Meet",
+        url: "https://meet.backus.agency",
+        category: "Comms",
+        tag: "Meetings",
+        description: "Video meetings and conferencing."
+      },
+      {
+        name: "Git",
+        url: "https://git.backus.agency",
+        category: "Dev",
+        tag: "Repo",
+        description: "Internal Git hosting."
+      },
+      {
+        name: "Search",
+        url: "https://search.backus.agency",
+        category: "Search",
+        tag: "Search",
+        description: "Primary internal search UI."
+      },
+      {
+        name: "SearXNG",
+        url: "https://searxng.backus.agency",
+        category: "Search",
+        tag: "Search",
+        description: "SearXNG meta-search instance."
+      },
+      {
+        name: "Traefik",
+        url: "https://traefik.backus.agency",
+        category: "Infra",
+        tag: "Edge",
+        description: "Traffic router and dashboard."
+      },
+      {
+        name: "N8N (mTLS)",
+        url: "https://n8n-mtls.backus.agency",
+        category: "Infra",
+        tag: "mTLS",
+        description: "mTLS-protected N8N endpoint."
+      }
+    ];
+
+    const categories = ["All", ...new Set(services.map((service) => service.category))];
+    const filters = document.getElementById("filters");
+    const cards = document.getElementById("cards");
+    const empty = document.getElementById("empty");
+    const search = document.getElementById("search");
+    const totalCount = document.getElementById("total-count");
+
+    let activeCategory = "All";
+    let query = "";
+
+    function renderFilters() {
+      filters.innerHTML = "";
+      categories.forEach((category) => {
+        const button = document.createElement("button");
+        button.className = "filter-btn" + (category === activeCategory ? " active" : "");
+        button.textContent = category;
+        button.type = "button";
+        button.addEventListener("click", () => {
+          activeCategory = category;
+          renderFilters();
+          renderCards();
+        });
+        filters.appendChild(button);
+      });
+    }
+
+    function renderCards() {
+      const filtered = services.filter((service) => {
+        const matchesCategory = activeCategory === "All" || service.category === activeCategory;
+        const haystack = `${service.name} ${service.url} ${service.tag} ${service.category}`.toLowerCase();
+        const matchesQuery = haystack.includes(query.toLowerCase());
+        return matchesCategory && matchesQuery;
+      });
+
+      cards.innerHTML = "";
+      totalCount.textContent = `${filtered.length} services`;
+
+      if (filtered.length === 0) {
+        empty.hidden = false;
+        return;
+      }
+
+      empty.hidden = true;
+
+      filtered.forEach((service) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const tagClass = service.tag === "mTLS" ? "tag alt" : "tag";
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="${tagClass}">${service.tag}</span>
+            <span class="chip">${service.category}</span>
+          </div>
+          <div class="name">${service.name}</div>
+          <div class="url">${service.url}</div>
+          <div class="desc">${service.description}</div>
+          <div class="card-actions">
+            <a class="open-link" href="${service.url}" target="_blank" rel="noreferrer">Open</a>
+          </div>
+        `;
+
+        cards.appendChild(card);
+      });
+    }
+
+    search.addEventListener("input", (event) => {
+      query = event.target.value.trim();
+      renderCards();
+    });
+
+    renderFilters();
+    renderCards();
+  </script>
+</body>
+</html>
