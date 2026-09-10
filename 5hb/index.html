@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Five Hours Back | The Backus Agency</title>
+<meta name="description" content="One payment of $999. Five hours back every week. A written plan that shows where the hours are going, or you do not pay.">
+<link rel="canonical" href="https://backus.agency/5hb/">
+<meta property="og:title" content="Five Hours Back | The Backus Agency">
+<meta property="og:description" content="One payment of $999. Five hours back every week. Guaranteed or it is free.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://backus.agency/5hb/">
+<meta name="theme-color" content="#0B0B0B">
+<style>
+  :root {
+    --ink: #0B0B0B;
+    --panel: #111113;
+    --panel-2: #141417;
+    --line: #26262b;
+    --white: #FFFFFF;
+    --muted: #A1A1AA;
+    --muted-2: #7c7c86;
+    --accent-a: #9333EA;
+    --accent-b: #4F46E5;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--white);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap {
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 22px;
+  }
+
+  .topbar {
+    border-bottom: 1px solid var(--line);
+    background: rgba(11, 11, 11, 0.92);
+  }
+
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 22px;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .wordmark {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 17px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .topbar-call {
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .topbar-call:hover { text-decoration: underline; }
+
+  header.hero {
+    padding: 62px 0 54px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .kicker {
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 18px;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: clamp(34px, 6.4vw, 60px);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    font-style: normal;
+    margin: 0 0 22px;
+    max-width: 18ch;
+  }
+
+  h1 .dim { color: var(--muted); }
+
+  .lead {
+    font-size: clamp(19px, 2.4vw, 23px);
+    line-height: 1.45;
+    color: #E7E7EA;
+    margin: 0 0 30px;
+    max-width: 46ch;
+  }
+
+  .price {
+    font-weight: 800;
+    color: var(--white);
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+
+  .btn:focus-visible { outline: 3px solid #C4B5FD; outline-offset: 3px; }
+
+  .btn-primary {
+    background: linear-gradient(to right, var(--accent-a), var(--accent-b));
+    color: var(--white);
+  }
+
+  .btn-ghost {
+    border-color: var(--line);
+    background: var(--panel);
+    color: var(--white);
+  }
+
+  .btn:hover { transform: translateY(-1px); }
+
+  .hero-note {
+    margin: 26px 0 0;
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 52ch;
+  }
+
+  section { padding: 58px 0; border-bottom: 1px solid var(--line); }
+
+  h2 {
+    font-size: clamp(26px, 4vw, 38px);
+    line-height: 1.14;
+    letter-spacing: -0.025em;
+    font-weight: 800;
+    font-style: normal;
+    margin: 0 0 26px;
+    max-width: 26ch;
+  }
+
+  h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  p { margin: 0 0 16px; }
+
+  .muted { color: var(--muted); }
+
+  .grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card p:last-child { margin-bottom: 0; }
+
+  .lanes .card { background: var(--panel-2); }
+
+  .lanes .card h3 { font-size: 21px; }
+
+  .guarantee {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent-a);
+    border-radius: var(--radius);
+    padding: 28px 26px;
+  }
+
+  .guarantee h2 { margin-bottom: 14px; max-width: none; }
+
+  .guarantee p { margin-bottom: 0; font-size: 19px; color: #E7E7EA; }
+
+  ul.plain {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  ul.plain li {
+    padding: 13px 0 13px 30px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+
+  ul.plain li:last-child { border-bottom: 0; }
+
+  ul.plain li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 22px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-a);
+  }
+
+  ol.steps {
+    list-style: none;
+    counter-reset: step;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 18px;
+  }
+
+  ol.steps li {
+    counter-increment: step;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 24px 24px 78px;
+    position: relative;
+  }
+
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 24px;
+    top: 22px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(to right, var(--accent-a), var(--accent-b));
+    color: var(--white);
+    font-weight: 800;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  ol.steps li p:last-child { margin-bottom: 0; }
+
+  .faq dt {
+    font-weight: 700;
+    font-size: 18px;
+    margin: 0 0 6px;
+  }
+
+  .faq dd {
+    margin: 0 0 24px;
+    color: var(--muted);
+  }
+
+  .faq dd:last-child { margin-bottom: 0; }
+
+  .final {
+    padding: 62px 0 70px;
+    border-bottom: 0;
+  }
+
+  .callbig {
+    display: inline-block;
+    font-size: clamp(28px, 6vw, 46px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    margin: 0 0 18px;
+  }
+
+  .callbig:hover { text-decoration: underline; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 26px 0 40px;
+    color: var(--muted-2);
+    font-size: 15px;
+  }
+
+  footer a { color: var(--muted); text-decoration: none; }
+
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 560px) {
+    header.hero { padding: 44px 0 40px; }
+    section { padding: 46px 0; }
+    .btn { width: 100%; }
+    ol.steps li { padding: 22px 20px 22px 20px; }
+    ol.steps li::before { position: static; margin-bottom: 12px; }
+    .topbar-call { font-size: 15px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="wordmark" href="/">Five Hours Back</a>
+    <a class="topbar-call" href="tel:+15188176493">Call or text (518) 817-6493</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">For owner operated businesses</p>
+    <h1>It is cheaper than ever to buy your time back.</h1>
+    <p class="lead">A one time payment of <span class="price">$999</span> gets you five hours back every week. Not once. Week after week. If I cannot show you those hours on paper, it is free.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="tel:+15188176493">Call or text (518) 817-6493</a>
+      <a class="btn btn-ghost" href="#start">Start with the free 15 minute map</a>
+    </div>
+    <p class="hero-note">The map is 15 minutes, one process, no charge. If it is not a fit, I will say so and you have lost nothing but the coffee.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>What the $999 actually gets you</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>A 45 minute interview</h3>
+        <p>You talk, I ask. What work sits overnight. What gets copied by hand. What question only you can answer. Which files cannot leave the office.</p>
+      </div>
+      <div class="card">
+        <h3>A written plan you keep</h3>
+        <p>Where the hours are going, what to fix first, what each fix costs, and what each fix should give back. Plain English, not a tool catalogue.</p>
+      </div>
+      <div class="card">
+        <h3>A 30 minute review</h3>
+        <p>We walk the plan line by line. You leave knowing what to do Monday morning, whether or not you ever hire me again.</p>
+      </div>
+      <div class="card">
+        <h3>Two ways to fix each leak</h3>
+        <p>Every item comes with two options side by side: tools you can switch on this week, and a private version where nothing leaves your office.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="guarantee">
+      <h2>Five hours back every week, guaranteed or it is free.</h2>
+      <p>If the plan cannot show you five hours a week, you do not pay. You keep the plan either way.</p>
+    </div>
+  </div>
+</section>
+
+<section class="lanes">
+  <div class="wrap">
+    <h2>Two lanes, priced on paper</h2>
+    <p class="muted" style="max-width:60ch;">Most owners are told to paste their work into a public tool and hope. You get a choice instead.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Switch it on this week</h3>
+        <p>Off the shelf tools, already working, cheap to run. The right answer when nothing sensitive is involved and you want the hours back now.</p>
+      </div>
+      <div class="card">
+        <h3>Nothing leaves the office</h3>
+        <p>A private version that runs on your side, on your files, with no third party reading client names, claims, returns, or patient notes. Slower to stand up, safer to live with.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Who this is for</h2>
+    <ul class="plain">
+      <li>You own the business and you are still in the work every day.</li>
+      <li>Somewhere between five and fifty people, and the office runs on repeat questions, quote follow up, and leads that sit until morning.</li>
+      <li>You have client files you would rather not paste into a chat window.</li>
+      <li>You can decide on $999 this week without asking a committee.</li>
+    </ul>
+    <p class="muted" style="margin-top:26px;max-width:60ch;">Not for you if you are pre revenue, if you are shopping for a custom platform, or if you need three people to approve a thousand dollars. Save the money.</p>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>How it starts</h2>
+    <ol class="steps">
+      <li>
+        <h3>The free 15 minute map</h3>
+        <p>One process. You show me where the week disappears, I tell you whether there is real money in fixing it. No charge, no deck, no follow up sequence.</p>
+      </li>
+      <li>
+        <h3>The $999 assessment</h3>
+        <p>Interview this week, written plan and review inside the week. One payment, not a subscription.</p>
+      </li>
+      <li>
+        <h3>You run it, or I do</h3>
+        <p>Most owners run it themselves with the plan in hand. If you want it built, that is a separate quote after the plan is on paper. Nobody gets billed to find out what is wrong.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Straight answers</h2>
+    <dl class="faq">
+      <dt>Do I need to know anything about AI?</dt>
+      <dd>No. That is the whole point. You bring the business, I bring the plan and the plain English.</dd>
+      <dt>What if my files are sensitive?</dt>
+      <dd>Then we do not put them in a public tool. That is what the private lane is for, and it gets a real page in your plan, not a footnote.</dd>
+      <dt>Is $999 a month?</dt>
+      <dd>No. One payment. The hours come back every week after that, and you own the plan and the process.</dd>
+      <dt>How fast is this?</dt>
+      <dd>Interview this week, plan and review within a week. The free map can happen the same day you call.</dd>
+      <dt>Who am I talking to?</dt>
+      <dd>Paulie, at The Backus Agency in Glenville. I have spent eighteen years in software and twelve of them automating operations for businesses.</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2>One call is the whole first step.</h2>
+    <a class="callbig" href="tel:+15188176493">(518) 817-6493</a>
+    <p class="muted">Call or text any time. Leave the business name and the best time to reach you, and I will call you back.</p>
+    <div class="cta-row" style="margin-top:22px;">
+      <a class="btn btn-primary" href="tel:+15188176493">Call or text now</a>
+      <a class="btn btn-ghost" href="sms:+15188176493">Send a text instead</a>
+    </div>
+    <p style="margin-top:26px;">Prefer email? <a href="mailto:paul@backus.agency" style="color:#C4B5FD;">paul@backus.agency</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Five Hours Back is run by <a href="https://backus.agency/">The Backus Agency</a>, Glenville, New York. Call or text (518) 817-6493.</p>
+    <p style="margin-bottom:0;">backus.agency/5hb</p>
+  </div>
+</footer>
+
+</body>
+</html>
