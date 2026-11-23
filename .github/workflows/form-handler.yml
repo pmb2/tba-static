@@ -43,17 +43,24 @@ jobs:
 
       - name: Extract form data
         id: extract-data
+        env:
+          ISSUE_TITLE_IN: ${{ github.event.issue.title }}
+          ISSUE_BODY_IN: ${{ github.event.issue.body }}
+          ISSUE_NUMBER_IN: ${{ github.event.issue.number }}
         run: |
-          echo "ISSUE_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
-          echo "ISSUE_BODY<<EOF" >> $GITHUB_ENV
-          echo "${{ github.event.issue.body }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          echo "ISSUE_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
-          
+          echo "ISSUE_TITLE=$ISSUE_TITLE_IN" >> $GITHUB_ENV
+          body_delimiter="ISSUE_BODY_EOF_${RANDOM}${RANDOM}"
+          {
+            echo "ISSUE_BODY<<$body_delimiter"
+            echo "$ISSUE_BODY_IN"
+            echo "$body_delimiter"
+          } >> $GITHUB_ENV
+          echo "ISSUE_NUMBER=$ISSUE_NUMBER_IN" >> $GITHUB_ENV
+
           # Determine form type from issue title
-          if [[ "${{ github.event.issue.title }}" == *"Contact Form"* ]]; then
+          if [[ "$ISSUE_TITLE_IN" == *"Contact Form"* ]]; then
             echo "FORM_TYPE=contact" >> $GITHUB_ENV
-          elif [[ "${{ github.event.issue.title }}" == *"Newsletter Form"* ]]; then
+          elif [[ "$ISSUE_TITLE_IN" == *"Newsletter Form"* ]]; then
             echo "FORM_TYPE=newsletter" >> $GITHUB_ENV
           else
             echo "FORM_TYPE=unknown" >> $GITHUB_ENV
@@ -61,8 +68,8 @@ jobs:
       
       - name: Debug form data
         run: |
-          echo "Form type: ${{ env.FORM_TYPE }}"
-          echo "Issue title: ${{ env.ISSUE_TITLE }}"
+          echo "Form type: $FORM_TYPE"
+          echo "Issue title: $ISSUE_TITLE"
           echo "First 100 chars of body: ${ISSUE_BODY:0:100}"
       
       - name: Process form submission
